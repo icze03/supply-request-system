@@ -8,6 +8,7 @@ use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Models\AuditLog;
 
 class UserManagementController extends Controller
 {
@@ -54,7 +55,15 @@ class UserManagementController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'department_id' => $request->department_id,
+
+            
         ]);
+        AuditLog::logAction(
+        action: 'user_created',
+        model: $user,
+        description: "New user created: {$user->name} ({$user->role})",
+        metadata: ['created_by' => auth()->user()->name]
+        );
 
         return response()->json([
             'success' => true,
@@ -169,6 +178,12 @@ class UserManagementController extends Controller
             ], 422);
         }
 
+        AuditLog::logAction(
+    action: 'user_deleted',
+    model: $user,
+    description: "User deleted: {$user->name}",
+    metadata: ['deleted_by' => auth()->user()->name]
+);
         $user->delete();
 
         return response()->json([

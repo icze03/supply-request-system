@@ -50,6 +50,16 @@
                             <a href="<?php echo e(route('admin.supplies.index')); ?>" class="inline-flex items-center px-1 pt-1 border-b-2 <?php echo e(request()->routeIs('admin.supplies.*') ? 'border-indigo-400' : 'border-transparent'); ?> text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
                                     Supplies
                                 </a>
+                            
+                            <!-- Department Management-->
+                            <a href="<?php echo e(route('admin.departments.index')); ?>" class="inline-flex items-center px-1 pt-1 border-b-2 <?php echo e(request()->routeIs('admin.departments.*') ? 'border-indigo-400' : 'border-transparent'); ?> text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Departments
+                                </a>
+
+                            <a href="<?php echo e(route('admin.audit-logs.index')); ?>"  class="inline-flex items-center px-1 pt-1 border-b-2 <?php echo e(request()->routeIs('admin.audit-logs*') ? 'border-indigo-400' : 'border-transparent'); ?> text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Audit Trail
+                                </a>
+                            
                             <!-- ... rest of admin links -->
                             <?php if(auth()->user()->isAdmin()): ?>
                             
@@ -68,7 +78,6 @@
                                     Approvals
                                 </a>
                             <?php endif; ?>
-                                
                         </div>
                     </div>
 
@@ -108,5 +117,16 @@
     </div>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm">
+                Developed by <span class="font-semibold">Klein Isaac Imperio</span> © <?php echo e(date('2026')); ?>
+
+            </p>
+        </div>
+    </footer>
+</body>
 </body>
 </html><?php /**PATH C:\laragon\www\supply-request-system\resources\views/layouts/app.blade.php ENDPATH**/ ?>

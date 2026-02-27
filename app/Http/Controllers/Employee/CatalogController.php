@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\Supply;
 use Illuminate\Http\Request;
+use App\Models\AuditLog;
 
 class CatalogController extends Controller
 {

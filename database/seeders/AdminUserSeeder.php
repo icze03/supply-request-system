@@ -16,62 +16,15 @@ class AdminUserSeeder extends Seeder
         // Create System Administrator
         User::create([
             'name' => 'System Administrator',
-            'email' => 'admin@supply.com',
-            'password' => Hash::make('password'),
+            'email' => 'admin@system.com',
+            'password' => Hash::make('password123'),
             'role' => 'admin',
             'department_id' => 1, // IT Department
         ]);
 
-        // Create IT Manager
-        User::create([
-            'name' => 'IT Manager',
-            'email' => 'manager.it@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'department_id' => 1,
-        ]);
 
-        // Create HR Manager
-        User::create([
-            'name' => 'HR Manager',
-            'email' => 'manager.hr@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'department_id' => 2,
-        ]);
 
-        // Create Finance Manager
-        User::create([
-            'name' => 'Finance Manager',
-            'email' => 'manager.fin@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'department_id' => 3,
-        ]);
+       
 
-        // Create Sample Employees
-        User::create([
-            'name' => 'John Employee',
-            'email' => 'employee@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'employee',
-            'department_id' => 1,
-        ]);
-
-        User::create([
-            'name' => 'Jane Smith',
-            'email' => 'jane@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'employee',
-            'department_id' => 2,
-        ]);
-
-        User::create([
-            'name' => 'Bob Johnson',
-            'email' => 'bob@supply.com',
-            'password' => Hash::make('password'),
-            'role' => 'employee',
-            'department_id' => 3,
-        ]);
     }
 }

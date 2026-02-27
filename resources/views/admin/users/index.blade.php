@@ -1,6 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
+
+{{-- ── PIN Lock Screen ── --}}
+@if(isset($locked) && $locked)
+<div id="pinLockScreen" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+        <div class="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-1">User Management</h2>
+        <p class="text-sm text-gray-500 mb-6">Enter your PIN to access this page</p>
+
+        <div class="mb-4">
+            <input type="password" id="pinInput" placeholder="Enter PIN"
+                class="w-full text-center text-lg tracking-widest rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3"
+                maxlength="20" autofocus>
+            <p id="pinError" class="mt-2 text-xs text-red-600 hidden">Incorrect PIN. Please try again.</p>
+        </div>
+
+        <button onclick="submitPin()"
+            class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+            Unlock
+        </button>
+
+        <a href="{{ route('admin.dashboard') }}" class="block mt-4 text-sm text-gray-400 hover:text-gray-600">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+async function submitPin() {
+    const pin     = document.getElementById('pinInput').value.trim();
+    const errorEl = document.getElementById('pinError');
+    errorEl.classList.add('hidden');
+
+    if (!pin) return;
+
+    try {
+        const response = await fetch('/admin/users/verify-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ pin })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            location.reload();
+        } else {
+            errorEl.textContent = data.message || 'Incorrect PIN. Please try again.';
+            errorEl.classList.remove('hidden');
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinInput').focus();
+        }
+    } catch (e) {
+        errorEl.textContent = 'An error occurred. Please try again.';
+        errorEl.classList.remove('hidden');
+    }
+}
+
+document.getElementById('pinInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitPin();
+});
+</script>
+@endpush
+
+@else
+
+{{-- ── Main Page Content ── --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
     <div class="mb-6 flex justify-between items-center">
@@ -54,8 +129,8 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $user->department->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $user->department->code }}</div>
+                        <div class="text-sm text-gray-900">{{ $user->department?->name ?? '—' }}</div>
+                        <div class="text-xs text-gray-500">{{ $user->department?->code ?? '' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $user->created_at->format('M d, Y') }}
@@ -116,12 +191,8 @@
                 <input type="password" name="password_confirmation" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                    Create User
-                </button>
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">Create User</button>
             </div>
         </form>
     </div>
@@ -159,12 +230,8 @@
                 </select>
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                    Update User
-                </button>
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">Update User</button>
             </div>
         </form>
     </div>
@@ -186,12 +253,8 @@
                 <input type="password" name="password_confirmation" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
-                    Change Password
-                </button>
+                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">Change Password</button>
             </div>
         </form>
     </div>
@@ -201,200 +264,87 @@
 <script>
 const users = @json($users);
 
-// Create Modal Functions
-function openCreateModal() {
-    document.getElementById('createModal').classList.remove('hidden');
-}
+function openCreateModal() { document.getElementById('createModal').classList.remove('hidden'); }
+function closeCreateModal() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('createForm').reset(); clearErrors('create'); }
 
-function closeCreateModal() {
-    document.getElementById('createModal').classList.add('hidden');
-    document.getElementById('createForm').reset();
-    clearErrors('create');
-}
-
-// Edit Modal Functions
 function openEditModal(userId) {
     const user = users.find(u => u.id === userId);
     if (!user) return;
-    
-    document.getElementById('edit-user-id').value = user.id;
-    document.getElementById('edit-name').value = user.name;
-    document.getElementById('edit-email').value = user.email;
-    document.getElementById('edit-role').value = user.role;
+    document.getElementById('edit-user-id').value   = user.id;
+    document.getElementById('edit-name').value       = user.name;
+    document.getElementById('edit-email').value      = user.email;
+    document.getElementById('edit-role').value       = user.role;
     document.getElementById('edit-department').value = user.department_id;
-    
     document.getElementById('editModal').classList.remove('hidden');
 }
+function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); clearErrors('edit'); }
 
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-    clearErrors('edit');
-}
-
-// Password Modal Functions
 function openPasswordModal(userId) {
     document.getElementById('password-user-id').value = userId;
     document.getElementById('passwordModal').classList.remove('hidden');
 }
+function closePasswordModal() { document.getElementById('passwordModal').classList.add('hidden'); document.getElementById('passwordForm').reset(); clearErrors('password'); }
 
-function closePasswordModal() {
-    document.getElementById('passwordModal').classList.add('hidden');
-    document.getElementById('passwordForm').reset();
-    clearErrors('password');
-}
-
-// Create User
 document.getElementById('createForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors('create');
-    
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
+    e.preventDefault(); clearErrors('create');
+    const data = Object.fromEntries(new FormData(e.target));
     try {
-        const response = await fetch('/admin/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        });
-        
+        const response = await fetch('/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(data) });
         const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(result.message);
-            closeCreateModal();
-            location.reload();
-        } else {
-            displayErrors(result.errors, 'create');
-        }
-    } catch (error) {
-        alert('An error occurred. Please try again.');
-    }
+        if (result.success) { showSuccess(result.message); closeCreateModal(); location.reload(); }
+        else { displayErrors(result.errors, 'create'); }
+    } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
-// Update User
 document.getElementById('editForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors('edit');
-    
+    e.preventDefault(); clearErrors('edit');
     const userId = document.getElementById('edit-user-id').value;
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
+    const data   = Object.fromEntries(new FormData(e.target));
     try {
-        const response = await fetch(`/admin/users/${userId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        });
-        
+        const response = await fetch(`/admin/users/${userId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(data) });
         const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(result.message);
-            closeEditModal();
-            location.reload();
-        } else {
-            displayErrors(result.errors, 'edit');
-        }
-    } catch (error) {
-        alert('An error occurred. Please try again.');
-    }
+        if (result.success) { showSuccess(result.message); closeEditModal(); location.reload(); }
+        else { displayErrors(result.errors, 'edit'); }
+    } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
-// Change Password
 document.getElementById('passwordForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors('password');
-    
+    e.preventDefault(); clearErrors('password');
     const userId = document.getElementById('password-user-id').value;
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
+    const data   = Object.fromEntries(new FormData(e.target));
     try {
-        const response = await fetch(`/admin/users/${userId}/password`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        });
-        
+        const response = await fetch(`/admin/users/${userId}/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(data) });
         const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(result.message);
-            closePasswordModal();
-        } else {
-            displayErrors(result.errors, 'password');
-        }
-    } catch (error) {
-        alert('An error occurred. Please try again.');
-    }
+        if (result.success) { showSuccess(result.message); closePasswordModal(); }
+        else { displayErrors(result.errors, 'password'); }
+    } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
-// Delete User
 async function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-        return;
-    }
-    
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     try {
-        const response = await fetch(`/admin/users/${userId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        });
-        
+        const response = await fetch(`/admin/users/${userId}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
         const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(result.message);
-            document.getElementById(`user-row-${userId}`).remove();
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        alert('An error occurred. Please try again.');
-    }
+        if (result.success) { showSuccess(result.message); document.getElementById(`user-row-${userId}`).remove(); }
+        else { alert(result.message); }
+    } catch (error) { alert('An error occurred. Please try again.'); }
 }
 
-// Helper Functions
 function displayErrors(errors, prefix) {
     for (const [field, messages] of Object.entries(errors)) {
-        const errorElement = document.getElementById(`${prefix}-error-${field}`);
-        if (errorElement) {
-            errorElement.textContent = messages[0];
-            errorElement.classList.remove('hidden');
-        }
+        const el = document.getElementById(`${prefix}-error-${field}`);
+        if (el) { el.textContent = Array.isArray(messages) ? messages[0] : messages; el.classList.remove('hidden'); }
     }
 }
-
-function clearErrors(prefix) {
-    document.querySelectorAll(`[id^="${prefix}-error-"]`).forEach(el => {
-        el.textContent = '';
-        el.classList.add('hidden');
-    });
-}
-
+function clearErrors(prefix) { document.querySelectorAll(`[id^="${prefix}-error-"]`).forEach(el => { el.textContent = ''; el.classList.add('hidden'); }); }
 function showSuccess(message) {
-    const successDiv = document.getElementById('successMessage');
-    const successText = document.getElementById('successText');
-    successText.textContent = message;
-    successDiv.classList.remove('hidden');
-    
-    setTimeout(() => {
-        successDiv.classList.add('hidden');
-    }, 5000);
+    const div = document.getElementById('successMessage');
+    document.getElementById('successText').textContent = message;
+    div.classList.remove('hidden');
+    setTimeout(() => div.classList.add('hidden'), 5000);
 }
 </script>
 @endpush
+
+@endif
 @endsection

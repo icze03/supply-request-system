@@ -7,92 +7,36 @@ use App\Models\SupplyRequest;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\AuditLog;
 
 class ApprovalController extends Controller
 {
-    // Passcode verification page
-    public function verifyPasscode()
-    {
-        return view('manager.verify-passcode');
-    }
-
-    // Check passcode
-    public function checkPasscode(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'passcode' => 'required|string|size:6',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid passcode format.'
-            ], 422);
-        }
-
-        $department = auth()->user()->department;
-
-        if (!$department) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No department assigned.'
-            ], 403);
-        }
-
-        if ($department->verifyPasscode($request->passcode)) {
-            // Store verification in session
-            session(['manager_verified' => true]);
-            session(['manager_verified_at' => now()]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Access granted.',
-                'redirect' => route('manager.approvals')
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid passcode.'
-        ], 403);
-    }
-
     // View pending requests
-public function index()
-{
-    // Check session verification
-    if (!session('manager_verified')) {
-        return redirect()->route('manager.verify');
+    public function index()
+    {
+        $departmentId = auth()->user()->department_id;
+        
+        // Pending requests - paginated
+        $pendingRequests = SupplyRequest::with(['user', 'items.supply', 'department'])
+            ->where('department_id', $departmentId)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        // Recently approved (last 7 days) - paginated
+        $approvedRequests = SupplyRequest::with(['user', 'items', 'department'])
+            ->where('department_id', $departmentId)
+            ->where('status', 'manager_approved')
+            ->where('manager_approved_at', '>=', now()->subDays(7))
+            ->orderBy('manager_approved_at', 'desc')
+            ->paginate(20);
+        
+        return view('manager.approvals', compact('pendingRequests', 'approvedRequests'));
     }
-    
-    $departmentId = auth()->user()->department_id;
-    
-    // Pending requests - paginated
-    $pendingRequests = SupplyRequest::with(['user', 'items.supply', 'department'])
-        ->where('department_id', $departmentId)
-        ->where('status', 'pending')
-        ->orderBy('created_at', 'desc')
-        ->paginate(20);
-    
-    // Recently approved (last 7 days) - paginated
-    $approvedRequests = SupplyRequest::with(['user', 'items', 'department'])
-        ->where('department_id', $departmentId)
-        ->where('status', 'manager_approved')
-        ->where('manager_approved_at', '>=', now()->subDays(7))
-        ->orderBy('manager_approved_at', 'desc')
-        ->paginate(20);
-    
-    return view('manager.approvals', compact('pendingRequests', 'approvedRequests'));
-}
 
     // View single request details
     public function show($id)
     {
-        // Check session verification
-        if (!session('manager_verified')) {
-            return redirect()->route('manager.verify');
-        }
-        
         $request = SupplyRequest::with(['user', 'department', 'items.supply'])
             ->findOrFail($id);
         
@@ -107,13 +51,6 @@ public function index()
     // Approve request
     public function approve(Request $request, $id)
     {
-        if (!session('manager_verified')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access.'
-            ], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -135,24 +72,25 @@ public function index()
             'manager_approved_by' => auth()->id(),
             'manager_approved_at' => now(),
             'manager_notes' => $request->notes,
+
+        AuditLog::logAction(
+    action: 'supply_request_created',
+    model: $supplyRequest,
+    description: "Supply request #{$supplyRequest->sr_number} approved by " . auth()->user()->name
+        )
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Request approved successfully!'
+
+        
         ]);
     }
 
     // Reject request
     public function reject(Request $request, $id)
     {
-        if (!session('manager_verified')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access.'
-            ], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'notes' => 'required|string|max:1000',
         ]);
@@ -174,6 +112,13 @@ public function index()
             'manager_approved_by' => auth()->id(),
             'manager_approved_at' => now(),
             'manager_notes' => $request->notes,
+
+        AuditLog::logAction(
+    action: 'supply_request_rejected',
+    model: $supplyRequest,
+    description: "Supply request #{$supplyRequest->sr_number} rejected by " . auth()->user()->name,
+    metadata: ['rejection_reason' => $request->notes]
+    )
         ]);
 
         return response()->json([
@@ -187,14 +132,6 @@ public function index()
      */
     public function updateItem(Request $request, $id)
     {
-        // Check session verification
-        if (!session('manager_verified')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Session expired. Please verify again.'
-            ], 403);
-        }
-        
         $validator = Validator::make($request->all(), [
             'item_id' => 'required|exists:request_items,id',
             'quantity' => 'required|integer|min:1|max:9999',

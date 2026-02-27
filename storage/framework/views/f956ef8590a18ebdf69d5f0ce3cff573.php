@@ -25,7 +25,7 @@
         <?php if($pendingRequests->count() > 0): ?>
             <div class="space-y-6">
                 <?php $__currentLoopData = $pendingRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow" id="request-card-<?php echo e($request->id); ?>">
                         <!-- Request Header -->
                         <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-white border-b border-gray-200">
                             <div class="flex items-start justify-between">
@@ -40,6 +40,12 @@
 
                                     </span>
                                     <p class="text-sm font-mono font-semibold text-indigo-600 mt-2"><?php echo e($request->sr_number); ?></p>
+                                    <?php if($request->budget_type): ?>
+                                        <span class="inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded-full <?php echo e($request->budget_type === 'budgeted' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'); ?>">
+                                            <?php echo e($request->budget_type === 'budgeted' ? 'Budgeted' : 'Not Budgeted'); ?>
+
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -55,24 +61,49 @@
                             <!-- Items or Special Description -->
                             <?php if($request->request_type === 'standard'): ?>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-700 mb-2">Items (<?php echo e($request->items->count()); ?>):</p>
-                                    <div class="bg-gray-50 rounded-md p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <p class="text-sm font-medium text-gray-700">Items (<?php echo e($request->items->count()); ?>):</p>
+                                        <button onclick="toggleEditMode(<?php echo e($request->id); ?>)" 
+                                                class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                                            Edit Quantities
+                                        </button>
+                                    </div>
+                                    <div class="bg-gray-50 rounded-md overflow-hidden border border-gray-200">
                                         <table class="min-w-full">
                                             <thead>
-                                                <tr class="border-b border-gray-200">
-                                                    <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Item</th>
-                                                    <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Code</th>
-                                                    <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">Quantity</th>
-                                                    <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">Unit</th>
+                                                <tr class="border-b border-gray-200 bg-gray-100">
+                                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase px-4 py-2">Item</th>
+                                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase px-4 py-2">Code</th>
+                                                    <th class="text-center text-xs font-semibold text-gray-600 uppercase px-4 py-2">Quantity</th>
+                                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase px-4 py-2">Unit</th>
+                                                    <th class="text-center text-xs font-semibold text-gray-600 uppercase px-4 py-2 edit-header-<?php echo e($request->id); ?> hidden">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-gray-200">
                                                 <?php $__currentLoopData = $request->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <tr>
-                                                        <td class="py-2 text-sm text-gray-900"><?php echo e($item->item_name); ?></td>
-                                                        <td class="py-2 text-sm text-gray-500 font-mono"><?php echo e($item->item_code); ?></td>
-                                                        <td class="py-2 text-sm text-gray-900 text-right font-semibold"><?php echo e($item->quantity); ?></td>
-                                                        <td class="py-2 text-sm text-gray-500"><?php echo e($item->supply->unit ?? 'N/A'); ?></td>
+                                                    <tr class="hover:bg-gray-100 transition">
+                                                        <td class="px-4 py-2 text-sm text-gray-900"><?php echo e($item->item_name); ?></td>
+                                                        <td class="px-4 py-2 text-sm text-gray-500 font-mono"><?php echo e($item->item_code); ?></td>
+                                                        <td class="px-4 py-2 text-center">
+                                                            <span class="qty-display-<?php echo e($item->id); ?> text-sm font-semibold text-gray-900"><?php echo e($item->quantity); ?></span>
+                                                            <input type="number" 
+                                                                   class="qty-edit-<?php echo e($item->id); ?> hidden w-20 mx-auto text-center rounded-md border-gray-300 text-sm" 
+                                                                   value="<?php echo e($item->quantity); ?>" 
+                                                                   min="1" max="9999">
+                                                        </td>
+                                                        <td class="px-4 py-2 text-sm text-gray-500"><?php echo e($item->supply->unit ?? 'pcs'); ?></td>
+                                                        <td class="px-4 py-2 text-center edit-actions-<?php echo e($request->id); ?> hidden">
+                                                            <div class="flex items-center justify-center gap-2">
+                                                                <button onclick="saveItemQty(<?php echo e($request->id); ?>, <?php echo e($item->id); ?>)" 
+                                                                        class="text-green-600 hover:text-green-800 text-xs font-medium">
+                                                                    Save
+                                                                </button>
+                                                                <button onclick="cancelItemEdit(<?php echo e($item->id); ?>)" 
+                                                                        class="text-gray-600 hover:text-gray-800 text-xs font-medium">
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </tbody>
@@ -130,6 +161,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SR Number</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Budget</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approved</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
@@ -137,10 +169,16 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php $__currentLoopData = $approvedRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php
+                                $hasPartialRelease = $request->items->contains(fn($i) => ($i->released_quantity ?? 0) > 0);
+                                $isFullyReleased   = $request->status === 'admin_released';
+                            ?>
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 whitespace-nowrap text-sm font-mono text-indigo-600 font-semibold">
-                                    <?php echo e($request->sr_number); ?>
-
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="text-sm font-mono text-indigo-600 font-semibold"><?php echo e($request->sr_number); ?></div>
+                                    <?php if($request->serial_number): ?>
+                                        <div class="text-xs font-mono text-gray-400"><?php echo e($request->serial_number); ?></div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900"><?php echo e($request->user->name); ?></div>
@@ -152,15 +190,31 @@
 
                                     </span>
                                 </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full <?php echo e($request->budget_type === 'budgeted' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'); ?>">
+                                        <?php echo e($request->budget_type === 'budgeted' ? 'Budgeted' : 'Not Budgeted'); ?>
+
+                                    </span>
+                                </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                     <?php echo e($request->manager_approved_at->format('M d, Y')); ?>
 
                                     <div class="text-xs text-gray-400"><?php echo e($request->manager_approved_at->format('h:i A')); ?></div>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        Awaiting Release
-                                    </span>
+                                    <?php if($isFullyReleased): ?>
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            Fully Released
+                                        </span>
+                                    <?php elseif($hasPartialRelease): ?>
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            Partially Released
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Awaiting Release
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     <a href="<?php echo e(route('manager.requests.show', $request->id)); ?>" 
@@ -169,7 +223,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
-                                        View Details
+                                        View
                                     </a>
                                 </td>
                             </tr>
@@ -220,6 +274,7 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+/* ─── Tab Switching ────────────────────────────────────────────────── */
 function switchTab(tab) {
     const pendingTab = document.getElementById('pendingTab');
     const approvedTab = document.getElementById('approvedTab');
@@ -239,6 +294,69 @@ function switchTab(tab) {
     }
 }
 
+/* ─── Inline Editing ───────────────────────────────────────────────── */
+function toggleEditMode(requestId) {
+    // Toggle edit header
+    document.querySelectorAll(`.edit-header-${requestId}`).forEach(el => el.classList.toggle('hidden'));
+    
+    // Toggle action cells
+    document.querySelectorAll(`.edit-actions-${requestId}`).forEach(el => el.classList.toggle('hidden'));
+    
+    // Get card items
+    const card = document.getElementById(`request-card-${requestId}`);
+    const items = card.querySelectorAll('[class^="qty-display-"]');
+    
+    items.forEach(display => {
+        const itemId = display.className.match(/qty-display-(\d+)/)[1];
+        const edit = card.querySelector(`.qty-edit-${itemId}`);
+        
+        display.classList.toggle('hidden');
+        edit.classList.toggle('hidden');
+    });
+}
+
+function cancelItemEdit(itemId) {
+    const display = document.querySelector(`.qty-display-${itemId}`);
+    const edit = document.querySelector(`.qty-edit-${itemId}`);
+    
+    // Reset to original value
+    edit.value = display.textContent.trim();
+}
+
+async function saveItemQty(requestId, itemId) {
+    const input = document.querySelector(`.qty-edit-${itemId}`);
+    const newQty = parseInt(input.value);
+    
+    if (newQty < 1) {
+        alert('Quantity must be at least 1');
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/manager/requests/${requestId}/update-item`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ item_id: itemId, quantity: newQty })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            // Update display
+            document.querySelector(`.qty-display-${itemId}`).textContent = newQty;
+            alert('✓ Quantity updated successfully');
+        } else {
+            alert(data.message || 'Failed to update quantity');
+        }
+    } catch(e) {
+        alert('An error occurred. Please try again.');
+    }
+}
+
+/* ─── Approval/Reject Modal ────────────────────────────────────────── */
 function showApprovalModal(requestId, action) {
     document.getElementById('request-id').value = requestId;
     document.getElementById('action-type').value = action;
@@ -248,11 +366,13 @@ function showApprovalModal(requestId, action) {
         document.getElementById('required-note').textContent = '';
         document.getElementById('approval-notes').placeholder = 'Add approval notes (optional)';
         document.getElementById('submitBtn').className = 'px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700';
+        document.getElementById('submitBtn').textContent = '✓ Approve';
     } else {
         document.getElementById('modalTitle').textContent = 'Reject Request';
         document.getElementById('required-note').textContent = '*';
         document.getElementById('approval-notes').placeholder = 'Reason for rejection (required)';
         document.getElementById('submitBtn').className = 'px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700';
+        document.getElementById('submitBtn').textContent = 'Reject';
     }
     
     document.getElementById('approvalModal').classList.remove('hidden');

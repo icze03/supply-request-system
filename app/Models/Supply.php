@@ -18,6 +18,7 @@ class Supply extends Model
         'is_active',
         'stock_quantity',
         'minimum_stock',
+        'unit_cost',
     ];
 
     protected $casts = [

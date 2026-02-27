@@ -25,25 +25,27 @@
             </select>
         </div>
         <div class="flex items-end space-x-2">
+
             <!-- Custom Request Button -->
-            <button onclick="openSpecialRequestModal()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Custom Request
-            </button>
+            <button onclick="openSpecialRequestModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
+    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+    </svg>
+    Custom Request
+</button>
             <!-- Cart Button -->
-            <button onclick="toggleCartModal()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                request list (<span id="cartCount">0</span>)
-            </button>
+            <button onclick="toggleCartModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
+    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+    </svg>
+    Request List
+    <span id="cartCount" class="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 shrink-0">0</span>
+</button>
         </div>
     </div>
 </div>
 
-    <!-- Supply Grid -->
+<!-- Supply Grid -->
     <div id="supplyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php $__currentLoopData = $supplies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supply): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 supply-card" data-category="<?php echo e($supply->category); ?>" data-name="<?php echo e(strtolower($supply->name)); ?>">
@@ -61,15 +63,25 @@
                     <p class="text-sm text-gray-600 mb-4"><?php echo e($supply->description); ?></p>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-500">Unit: <?php echo e($supply->unit); ?></span>
-                        <button onclick="addToCart(<?php echo e($supply->id); ?>, '<?php echo e($supply->name); ?>', '<?php echo e($supply->item_code); ?>', '<?php echo e($supply->unit); ?>')" class="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
-                            Add to list
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+    <button onclick="document.getElementById('qty-<?php echo e($supply->id); ?>').stepDown()" 
+        class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">−</button>
+    <input type="number" id="qty-<?php echo e($supply->id); ?>" value="1" min="1" max="999"
+        class="w-12 text-center text-sm border-0 focus:ring-0 py-1.5 font-semibold text-gray-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+    <button onclick="document.getElementById('qty-<?php echo e($supply->id); ?>').stepUp()"
+        class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">+</button>
+</div>
+                            <button onclick="addToCart(<?php echo e($supply->id); ?>, '<?php echo e($supply->name); ?>', '<?php echo e($supply->item_code); ?>', '<?php echo e($supply->unit); ?>')" 
+                                class="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-700">
+                                Add to list
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
-</div>
 
 <!-- Cart Modal -->
 <div id="cartModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -179,13 +191,14 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('supply_cart') || '[]');
+updateCart();
 
 // Toggle Cart Modal
 function toggleCartModal() {
     const modal = document.getElementById('cartModal');
     modal.classList.toggle('hidden');
-}
+}   
 
 // Close modal when clicking outside
 document.getElementById('cartModal')?.addEventListener('click', function(e) {
@@ -195,19 +208,23 @@ document.getElementById('cartModal')?.addEventListener('click', function(e) {
 });
 
 function addToCart(id, name, code, unit) {
+    const qtyInput = document.getElementById('qty-' + id);
+    const qty = Math.max(1, parseInt(qtyInput?.value) || 1);
     const existing = cart.find(item => item.supply_id === id);
 
     if (existing) {
-        existing.quantity++;
+        existing.quantity += qty;
     } else {
         cart.push({
             supply_id: id,
             name: name,
             code: code,
             unit: unit,
-            quantity: 1
+            quantity: qty
         });
     }
+
+    if (qtyInput) qtyInput.value = 1; // reset after adding
 
     updateCart();
 
@@ -233,6 +250,7 @@ function updateQuantity(id, change) {
 }
 
 function updateCart() {
+    localStorage.setItem('supply_cart', JSON.stringify(cart));
     const cartCount = document.getElementById('cartCount');
     const cartItems = document.getElementById('cartItems');
     const submitBtn = document.getElementById('submitBtn');
@@ -365,10 +383,11 @@ async function submitRequest() {
 
         const data = await response.json();
 
-        if (data.success) {
-            showToast('Request submitted successfully!', 'success');
-            cart = [];
-            updateCart();
+       if (data.success) {
+    showToast('Request submitted successfully!', 'success');
+    cart = [];
+    localStorage.removeItem('supply_cart');
+    updateCart();
             document.getElementById('requestPurpose').value = '';
             toggleCartModal();
 

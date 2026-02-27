@@ -113,8 +113,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    <?php $__empty_1 = true; $__currentLoopData = $recentRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr>
+                        <?php $__empty_1 = true; $__currentLoopData = $recentRequests->take(1); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $request): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>                        <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <?php echo e($request->created_at->format('M d, Y')); ?>
 

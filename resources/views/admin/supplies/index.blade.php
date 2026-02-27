@@ -75,6 +75,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -113,6 +114,9 @@
                                 {{ $stockQty }}
                             </span>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                            {{ $supply->unit_cost ? '₱' . number_format($supply->unit_cost, 2) : '—' }}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <button onclick="toggleStatus({{ $supply->id }})" class="status-toggle-{{ $supply->id }}">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $supply->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
@@ -127,7 +131,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="text-gray-400">
                                 <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
@@ -151,7 +155,6 @@
 
 @push('scripts')
 <script>
-// Filter functionality
 document.getElementById('searchInput').addEventListener('input', filterSupplies);
 document.getElementById('categoryFilter').addEventListener('change', filterSupplies);
 document.getElementById('statusFilter').addEventListener('change', filterSupplies);
@@ -172,11 +175,7 @@ function filterSupplies() {
         const matchesCategory = !category || rowCategory === category;
         const matchesStatus = !status || rowStatus === status;
         
-        if (matchesSearch && matchesCategory && matchesStatus) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display = (matchesSearch && matchesCategory && matchesStatus) ? '' : 'none';
     });
 }
 
@@ -189,25 +188,16 @@ async function toggleStatus(id) {
                 'Accept': 'application/json'
             }
         });
-        
         const data = await response.json();
-        
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Failed to toggle status');
-        }
+        if (data.success) location.reload();
+        else alert('Failed to toggle status');
     } catch (error) {
-        console.error('Error:', error);
         alert('An error occurred. Please try again.');
     }
 }
 
 async function deleteSupply(id) {
-    if (!confirm('Are you sure you want to delete this supply? This action cannot be undone.')) {
-        return;
-    }
-    
+    if (!confirm('Are you sure you want to delete this supply? This action cannot be undone.')) return;
     try {
         const response = await fetch(`/admin/supplies/${id}`, {
             method: 'DELETE',
@@ -216,17 +206,10 @@ async function deleteSupply(id) {
                 'Accept': 'application/json'
             }
         });
-        
         const data = await response.json();
-        
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.message || 'Failed to delete supply');
-        }
+        if (data.success) { alert(data.message); location.reload(); }
+        else alert(data.message || 'Failed to delete supply');
     } catch (error) {
-        console.error('Error:', error);
         alert('An error occurred. Please try again.');
     }
 }

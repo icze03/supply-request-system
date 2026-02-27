@@ -28,6 +28,7 @@ class SupplyRequest extends Model
         'admin_rejected_at',
         'admin_notes',
         'serial_number',
+        'ro_number',
     ];
 
     protected $casts = [
@@ -188,4 +189,81 @@ class SupplyRequest extends Model
     {
         return $this->belongsTo(User::class, 'admin_rejected_by');
     }
+
+    /**
+ * Check if request is partially allocated
+ */
+public function isPartiallyAllocated()
+{
+    if ($this->request_type !== 'standard') {
+        return false;
+    }
+    
+    foreach ($this->items as $item) {
+        if ($item->allocated_quantity > 0 && $item->allocated_quantity < $item->quantity) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Check if request is fully allocated
+ */
+public function isFullyAllocated()
+{
+    if ($this->request_type !== 'standard') {
+        return true;
+    }
+    
+    foreach ($this->items as $item) {
+        if (!$item->is_fully_allocated) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Get allocation status badge
+ */
+public function getAllocationBadge()
+{
+    if ($this->isPartiallyAllocated()) {
+        return '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800"> Partial</span>';
+    }
+    
+    if ($this->isFullyAllocated()) {
+        return '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">✓ Full</span>';
+    }
+    
+    return '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Pending</span>';
+}
+
+public function hasActiveReturnRequest(): bool
+{
+    return in_array($this->status, ['return_requested']);
+}
+
+public function releaseTransactions()
+{
+    return $this->hasMany(\App\Models\ReleaseTransaction::class, 'supply_request_id')
+                ->orderBy('round');
+}
+
+/**
+ * Track parent SR when this was auto-created from a re-queue.
+ * Requires parent_sr_id column in supply_requests table.
+ */
+public function parentRequest()
+{
+    return $this->belongsTo(SupplyRequest::class, 'parent_sr_id');
+}
+
+public function childRequests()
+{
+    return $this->hasMany(SupplyRequest::class, 'parent_sr_id');
+}
 }

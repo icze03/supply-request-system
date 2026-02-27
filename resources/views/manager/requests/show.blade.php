@@ -7,13 +7,19 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Request Details</h1>
-                <p class="mt-1 text-sm text-gray-600">View and edit request information</p>
+                <p class="mt-1 text-sm text-gray-600">View and manage supply request</p>
             </div>
-            <a href="{{ route('manager.approvals.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900">
-                ← Back to Approvals
+            <a href="{{ route('manager.approvals.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-medium">
+                Back to Approvals
             </a>
         </div>
     </div>
+
+    @php
+        $hasPartialRelease = $request->items->contains(fn($i) => ($i->released_quantity ?? 0) > 0);
+        $isFullyReleased   = $request->status === 'admin_released';
+        $isPending         = $request->status === 'pending';
+    @endphp
 
     <!-- Request Card -->
     <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
@@ -21,12 +27,27 @@
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900">SR Number: {{ $request->sr_number }}</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">SR #{{ $request->sr_number }}</h2>
                     <p class="text-sm text-gray-600">Submitted {{ $request->created_at->format('F d, Y h:i A') }}</p>
+                    @if($request->serial_number)
+                        <p class="text-sm font-mono text-indigo-600 mt-1">Serial: {{ $request->serial_number }}</p>
+                    @endif
                 </div>
-                <span class="px-3 py-1 text-sm font-semibold rounded-full {{ $request->getStatusBadgeColor() }}">
-                    {{ $request->getStatusLabel() }}
-                </span>
+                <div class="text-right">
+                    @if($isFullyReleased)
+                        <span class="px-3 py-1 text-sm font-bold rounded-full bg-green-100 text-green-800 border border-green-300">
+                            Fully Released
+                        </span>
+                    @elseif($hasPartialRelease)
+                        <span class="px-3 py-1 text-sm font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-300">
+                            Partially Released
+                        </span>
+                    @else
+                        <span class="px-3 py-1 text-sm font-semibold rounded-full {{ $request->getStatusBadgeColor() }}">
+                            {{ $request->getStatusLabel() }}
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -54,8 +75,8 @@
                 <div>
                     <p class="text-sm font-medium text-gray-500">Budget Type</p>
                     <p class="mt-1">
-                        <span class="px-2 py-1 text-xs font-semibold rounded {{ $request->budget_type === 'budgeted' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ ucfirst(str_replace('_', ' ', $request->budget_type)) }}
+                        <span class="px-2 py-1 text-xs font-semibold rounded {{ $request->budget_type === 'budgeted' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800' }}">
+                            {{ $request->budget_type === 'budgeted' ? 'Budgeted' : 'Not Budgeted' }}
                         </span>
                     </p>
                 </div>
@@ -69,47 +90,81 @@
             <!-- Items Table -->
             @if($request->request_type === 'standard')
                 <div>
-                    <p class="text-sm font-medium text-gray-500 mb-3">Requested Items ({{ $request->items->count() }})</p>
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-sm font-medium text-gray-500">
+                            Requested Items ({{ $request->items->count() }})
+                            @if($hasPartialRelease)
+                                <span class="text-xs text-blue-600 ml-2">— showing release status</span>
+                            @endif
+                        </p>
+                        @if($isPending)
+                            <button onclick="enableBulkEdit()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                Edit Quantities
+                            </button>
+                        @endif
+                    </div>
                     <div class="border border-gray-200 rounded-lg overflow-hidden">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Name</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                                    @if($hasPartialRelease)
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Requested</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Released</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Remaining</th>
+                                    @else
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                                    @endif
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Unit</th>
-                                    @if($request->status === 'pending')
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                    @if($isPending)
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase edit-header hidden">Actions</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($request->items as $item)
-                                    <tr id="item-row-{{ $item->id }}">
+                                    @php
+                                        $released  = $item->released_quantity  ?? 0;
+                                        $remaining = $item->remaining_quantity ?? $item->quantity;
+                                        $original  = $item->original_quantity  ?? $item->quantity;
+                                        $done      = $released > 0 && $remaining == 0;
+                                        $partial   = $released > 0 && $remaining > 0;
+                                    @endphp
+                                    <tr class="{{ $done ? 'bg-green-50' : ($partial ? 'bg-blue-50' : 'bg-white') }} hover:bg-gray-100 transition" 
+                                        id="item-row-{{ $item->id }}">
                                         <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ $item->item_code }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-900">{{ $item->item_name }}</td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="quantity-display-{{ $item->id }} text-sm font-semibold text-gray-900">
-                                                {{ $item->quantity }}
-                                            </span>
-                                            @if($request->status === 'pending')
-                                                <input 
-                                                    type="number" 
-                                                    class="quantity-edit-{{ $item->id }} hidden w-20 mx-auto text-center rounded border-gray-300" 
-                                                    value="{{ $item->quantity }}" 
-                                                    min="1"
-                                                    max="9999">
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 text-center text-sm text-gray-500">{{ $item->supply->unit ?? 'N/A' }}</td>
-                                        @if($request->status === 'pending')
+                                        
+                                        @if($hasPartialRelease)
+                                            <td class="px-6 py-4 text-center text-sm text-gray-600">{{ $original }}</td>
+                                            <td class="px-6 py-4 text-center text-sm font-semibold {{ $released > 0 ? 'text-green-700' : 'text-gray-300' }}">
+                                                {{ $released > 0 ? $released : '—' }}
+                                            </td>
+                                            <td class="px-6 py-4 text-center text-sm font-semibold {{ $remaining > 0 ? 'text-orange-600' : 'text-gray-300' }}">
+                                                {{ $remaining > 0 ? $remaining : '—' }}
+                                            </td>
+                                        @else
                                             <td class="px-6 py-4 text-center">
-                                                <button 
-                                                    onclick="editQuantity({{ $item->id }})" 
-                                                    class="edit-btn-{{ $item->id }} text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                    Edit
-                                                </button>
-                                                <div class="save-cancel-{{ $item->id }} hidden space-x-2">
+                                                <span class="quantity-display-{{ $item->id }} text-sm font-semibold text-gray-900">
+                                                    {{ $item->quantity }}
+                                                </span>
+                                                @if($isPending)
+                                                    <input 
+                                                        type="number" 
+                                                        class="quantity-edit-{{ $item->id }} hidden w-20 mx-auto text-center rounded-md border-gray-300" 
+                                                        value="{{ $item->quantity }}" 
+                                                        min="1"
+                                                        max="9999">
+                                                @endif
+                                            </td>
+                                        @endif
+                                        
+                                        <td class="px-6 py-4 text-center text-sm text-gray-500">{{ $item->supply->unit ?? 'N/A' }}</td>
+                                        
+                                        @if($isPending)
+                                            <td class="px-6 py-4 text-center edit-actions hidden">
+                                                <div class="flex items-center justify-center gap-2">
                                                     <button 
                                                         onclick="saveQuantity({{ $item->id }})" 
                                                         class="text-green-600 hover:text-green-800 text-sm font-medium">
@@ -126,13 +181,24 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+                            @if($hasPartialRelease)
+                                <tfoot class="bg-gray-50 border-t border-gray-200 text-xs font-bold">
+                                    <tr>
+                                        <td colspan="2" class="px-6 py-3 text-gray-500 uppercase">Totals</td>
+                                        <td class="px-6 py-3 text-center text-gray-700">{{ $request->items->sum(fn($i) => $i->original_quantity ?? $i->quantity) }}</td>
+                                        <td class="px-6 py-3 text-center text-green-700">{{ $request->items->sum(fn($i) => $i->released_quantity ?? 0) }}</td>
+                                        <td class="px-6 py-3 text-center text-orange-600">{{ $request->items->sum(fn($i) => $i->remaining_quantity ?? $i->quantity) }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            @endif
                         </table>
                     </div>
                 </div>
             @else
                 <div>
                     <p class="text-sm font-medium text-gray-500 mb-2">Special Item Description</p>
-                    <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <div class="bg-purple-50 border border-purple-200 rounded-md p-4">
                         <p class="text-sm text-gray-900">{{ $request->special_item_description }}</p>
                     </div>
                 </div>
@@ -140,7 +206,7 @@
         </div>
 
         <!-- Actions -->
-        @if($request->status === 'pending')
+        @if($isPending)
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                 <div class="flex justify-end space-x-3">
                     <button 
@@ -157,6 +223,13 @@
             </div>
         @endif
     </div>
+
+    @if($hasPartialRelease)
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+            <strong>Partial Release Status:</strong> This request has been partially released. 
+            Remaining items are awaiting stock replenishment or admin action.
+        </div>
+    @endif
 </div>
 
 <!-- Approval/Reject Modal -->
@@ -171,7 +244,7 @@
                     id="action-notes" 
                     rows="4" 
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    placeholder="Add notes (optional for approval, required for rejection)"></textarea>
+                    placeholder="Add notes..."></textarea>
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                 <button type="button" onclick="closeActionModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
@@ -187,19 +260,18 @@
 
 @push('scripts')
 <script>
-// Edit Quantity Functions
-function editQuantity(itemId) {
-    document.querySelector(`.quantity-display-${itemId}`).classList.add('hidden');
-    document.querySelector(`.quantity-edit-${itemId}`).classList.remove('hidden');
-    document.querySelector(`.edit-btn-${itemId}`).classList.add('hidden');
-    document.querySelector(`.save-cancel-${itemId}`).classList.remove('hidden');
+/* ─── Bulk Edit Mode ────────────────────────────────────────────────── */
+function enableBulkEdit() {
+    document.querySelectorAll('.edit-header').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.edit-actions').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('[class^="quantity-display-"]').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('[class^="quantity-edit-"]').forEach(el => el.classList.remove('hidden'));
 }
 
 function cancelEdit(itemId) {
-    document.querySelector(`.quantity-display-${itemId}`).classList.remove('hidden');
-    document.querySelector(`.quantity-edit-${itemId}`).classList.add('hidden');
-    document.querySelector(`.edit-btn-${itemId}`).classList.remove('hidden');
-    document.querySelector(`.save-cancel-${itemId}`).classList.add('hidden');
+    const display = document.querySelector(`.quantity-display-${itemId}`);
+    const edit = document.querySelector(`.quantity-edit-${itemId}`);
+    edit.value = display.textContent.trim();
 }
 
 async function saveQuantity(itemId) {
@@ -226,10 +298,8 @@ async function saveQuantity(itemId) {
         const data = await response.json();
         
         if (data.success) {
-            // Update display
             document.querySelector(`.quantity-display-${itemId}`).textContent = newQuantity;
-            cancelEdit(itemId);
-            alert('Quantity updated successfully');
+            alert('✓ Quantity updated successfully');
         } else {
             alert(data.message || 'Failed to update quantity');
         }
@@ -238,14 +308,14 @@ async function saveQuantity(itemId) {
     }
 }
 
-// Approval/Reject Functions
+/* ─── Approval/Reject ───────────────────────────────────────────────── */
 function approveRequest() {
     document.getElementById('modalTitle').textContent = 'Approve Request';
     document.getElementById('action-type').value = 'approve';
     document.getElementById('required-indicator').textContent = '';
     document.getElementById('action-notes').placeholder = 'Add approval notes (optional)';
     document.getElementById('submitActionBtn').className = 'px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700';
-    document.getElementById('submitActionBtn').textContent = 'Approve';
+    document.getElementById('submitActionBtn').textContent = '✓ Approve';
     document.getElementById('actionModal').classList.remove('hidden');
 }
 

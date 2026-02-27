@@ -41,6 +41,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/requests', [RequestController::class, 'store'])->name('requests.store');
         Route::post('/requests/special', [RequestController::class, 'storeSpecial'])->name('requests.special');
         Route::delete('/requests/{id}', [RequestController::class, 'cancel'])->name('requests.cancel');
+
+        Route::delete('/requests/{id}', [RequestController::class, 'cancel'])->name('requests.cancel');
+        Route::post('/requests/{id}/return', [RequestController::class, 'submitReturn'])->name('requests.return'); 
+
+        Route::get('/requests/{id}/voucher', [RequestController::class, 'voucher'])->name('requests.voucher');
     });
 
     // =============================================
@@ -48,10 +53,6 @@ Route::middleware('auth')->group(function () {
     // =============================================
     Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
         
-        // Passcode verification
-        Route::get('/verify', [ApprovalController::class, 'verifyPasscode'])->name('verify');
-        Route::post('/verify', [ApprovalController::class, 'checkPasscode'])->name('verify.check');
-        Route::get('', [ApprovalController::class,  'index'])->name('dashboard');
 
         // Approvals - FIXED: Changed 'approvals' to 'approvals.index'
         Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
@@ -63,6 +64,7 @@ Route::middleware('auth')->group(function () {
         // Request detail view
         Route::get('/requests/{id}', [ApprovalController::class, 'show'])->name('requests.show');
         Route::post('/requests/{id}/update-item', [ApprovalController::class, 'updateItem'])->name('requests.update-item');
+
     });
 
     // =============================================
@@ -74,6 +76,18 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])
         ->name('dashboard');
+
+    // Department Management Routes - ADD THESE
+    Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
+        ->name('departments.index');
+    Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
+        ->name('departments.store');
+    Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
+        ->name('departments.update');
+    Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
+        ->name('departments.destroy');
+    Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
+        ->name('departments.budget.reset');
 
     // User Management
     Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])
@@ -114,15 +128,57 @@ Route::middleware('auth')->group(function () {
         ->name('releases.show');
     Route::post('/releases/{id}/release', [App\Http\Controllers\Admin\ReleaseController::class, 'release'])
         ->name('releases.release');
+    Route::post('/releases/{id}/requeue',         [ReleaseController::class, 'closeAndRequeue'])->name('admin.releases.requeue');
     Route::post('/releases/{id}/reject', [App\Http\Controllers\Admin\ReleaseController::class, 'reject'])
         ->name('releases.reject');
     Route::delete('/releases/{id}/delete', [App\Http\Controllers\Admin\ReleaseController::class, 'destroy'])
         ->name('releases.destroy');    
     
+    Route::post('/releases/{id}/approve-return', [App\Http\Controllers\Admin\ReleaseController::class, 'approveReturn'])->name('releases.approveReturn');
+    Route::post('/releases/{id}/reject-return', [App\Http\Controllers\Admin\ReleaseController::class, 'rejectReturn'])->name('releases.rejectReturn');
+
+    Route::get('/releases/{id}/details', [ReleaseController::class, 'details'])->name('releases.details');
+
+    Route::delete('/releases/transactions/{id}', [ReleaseController::class, 'destroyTransaction'])
+    ->name('admin.releases.transactions.destroy');
+
+    
     // Voucher
-    Route::get('/voucher/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'voucher'])
-        ->name('voucher');
-});
+    Route::get('/voucher/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'voucher']) 
+    ->name('voucher');
+
+    // Department Management with Budget Routes
+    Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
+        ->name('departments.index');
+    Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
+        ->name('departments.store');
+    Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
+        ->name('departments.update');
+    Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
+        ->name('departments.destroy');
+    
+    // Budget Management Routes - ADD THESE
+    Route::put('/departments/{id}/budget', [App\Http\Controllers\Admin\DepartmentController::class, 'updateBudget'])
+        ->name('departments.budget.update');
+    Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
+        ->name('departments.budget.reset');
+
+    // Audit Logs
+    Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])
+        ->name('audit-logs.index');
+    Route::get('/audit-logs/{id}', [App\Http\Controllers\Admin\AuditLogController::class, 'show'])
+        ->name('audit-logs.show');
+    Route::get('/audit-logs/export/csv', [App\Http\Controllers\Admin\AuditLogController::class, 'export'])
+        ->name('audit-logs.export');
+
+    // dashboard    
+    Route::get('/dashboard/department/{id}/requests', [DashboardController::class, 'departmentRequests'])
+     ->name('admin.dashboard.department.requests');
+
+
+    Route::post('/departments/verify-pin', [App\Http\Controllers\Admin\DepartmentController::class, 'verifyPin'])
+    ->name('departments.verify-pin'); 
+    });
 });
 
 require __DIR__.'/auth.php';

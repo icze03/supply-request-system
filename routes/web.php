@@ -92,6 +92,8 @@ Route::middleware('auth')->group(function () {
     // User Management
     Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])
         ->name('users.index');
+    Route::post('/users/verify-pin', [App\Http\Controllers\Admin\UserManagementController::class, 'verifyPin'])
+        ->name('users.verify-pin');    
     Route::post('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'store'])
         ->name('users.store');
     Route::put('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'update'])

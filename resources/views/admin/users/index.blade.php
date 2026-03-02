@@ -26,9 +26,7 @@
             Unlock
         </button>
 
-        <a href="{{ route('admin.dashboard') }}" class="block mt-4 text-sm text-gray-400 hover:text-gray-600">
-            ← Back to Dashboard
-        </a>
+        
     </div>
 </div>
 
@@ -38,21 +36,14 @@ async function submitPin() {
     const pin     = document.getElementById('pinInput').value.trim();
     const errorEl = document.getElementById('pinError');
     errorEl.classList.add('hidden');
-
     if (!pin) return;
-
     try {
         const response = await fetch('/admin/users/verify-pin', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({ pin })
         });
-
         const data = await response.json();
-
         if (data.success) {
             location.reload();
         } else {
@@ -66,10 +57,7 @@ async function submitPin() {
         errorEl.classList.remove('hidden');
     }
 }
-
-document.getElementById('pinInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitPin();
-});
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPin(); });
 </script>
 @endpush
 
@@ -77,7 +65,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
 
 {{-- ── Main Page Content ── --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Page Header -->
     <div class="mb-6 flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">User Management</h1>
@@ -91,7 +78,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
         </button>
     </div>
 
-    <!-- Success Message -->
     <div id="successMessage" class="hidden mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
         <div class="flex items-center">
             <svg class="h-5 w-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +87,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
         </div>
     </div>
 
-    <!-- Users Table -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -129,8 +114,8 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ $user->department?->name ?? '—' }}</div>
-                        <div class="text-xs text-gray-500">{{ $user->department?->code ?? '' }}</div>
+                            <div class="text-sm text-gray-900">{{ $user->department?->name ?? '—' }}</div>
+                            <div class="text-xs text-gray-500">{{ $user->department?->code ?? '' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $user->created_at->format('M d, Y') }}

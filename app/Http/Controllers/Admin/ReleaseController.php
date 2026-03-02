@@ -140,7 +140,7 @@ class ReleaseController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'notes'                       => 'nullable|string|max:500',
-            'ro_number'                   => 'nullable|string|max:100',
+            'ro_number'                   => 'required|string|max:100',
             'allocations'                 => 'nullable|array',
             'allocations.*.item_id'       => 'required|exists:request_items,id',
             'allocations.*.allocated_qty' => 'required|integer|min:0',

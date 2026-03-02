@@ -30,10 +30,13 @@
 
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+
+                            {{-- Dashboard (all roles) --}}
                             <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
                                 Dashboard
                             </a>
 
+                            {{-- Employee links --}}
                             @if(auth()->user()->isEmployee())
                                 <a href="{{ route('employee.catalog') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('employee.catalog') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
                                     Catalog
@@ -42,46 +45,40 @@
                                     My Requests
                                 </a>
                             @endif
-                            
-                                @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.users.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
-                                    Users
-                                </a>
-                            <a href="{{ route('admin.supplies.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.supplies.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
-                                    Supplies
-                                </a>
-                            
-                            <!-- Department Management-->
-                            <a href="{{ route('admin.departments.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.departments.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
-                                    Departments
-                                </a>
 
-                            <a href="{{ route('admin.audit-logs.index') }}"  class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.audit-logs*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
-                                    Audit Trail
-                                </a>
-                            
-                            <!-- ... rest of admin links -->
-                            @if(auth()->user()->isAdmin())
-                            
-                            <a href="{{ route('admin.releases.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.releases.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
-                                Releases
-                                </a>
-
-                            <a href="{{ route('admin.low-stock.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.low-stock.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900">
-                                Low Stock
-                                </a>    
-                            @endif
-                            @endif
-
+                            {{-- Manager links --}}
                             @if(auth()->user()->isManager())
                                 <a href="{{ route('manager.approvals.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('manager.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
                                     Approvals
                                 </a>
                             @endif
+
+                            {{-- Admin links: Dashboard, Releases, Supplies, Low Stock, Audit Trail, Users, Departments --}}
+                            @if(auth()->user()->isAdmin())
+                                <a href="{{ route('admin.releases.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.releases.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Releases
+                                </a>
+                                <a href="{{ route('admin.supplies.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.supplies.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Supplies
+                                </a>
+                                <a href="{{ route('admin.low-stock.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.low-stock.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Low Stock
+                                </a>
+                                <a href="{{ route('admin.audit-logs.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.audit-logs*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Audit Trail
+                                </a>
+                                <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.users.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Users
+                                </a>
+                                <a href="{{ route('admin.departments.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('admin.departments.*') ? 'border-indigo-400' : 'border-transparent' }} text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    Departments
+                                </a>
+                            @endif
+
                         </div>
                     </div>
 
-                    <!-- Settings Dropdown -->
+                    <!-- User Info & Logout -->
                     <div class="hidden sm:flex sm:items-center sm:ml-6">
                         <div class="ml-3 relative">
                             <div class="flex items-center space-x-3">
@@ -125,6 +122,5 @@
             </p>
         </div>
     </footer>
-</body>
 </body>
 </html>

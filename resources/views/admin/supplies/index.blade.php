@@ -18,29 +18,50 @@
 
     <!-- Filters -->
     <div class="bg-white shadow rounded-lg p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input type="text" id="searchInput" placeholder="Search by name or code..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <form method="GET" action="{{ route('admin.supplies.index') }}" id="filterForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" name="search" id="searchInput"
+                        value="{{ request('search') }}"
+                        placeholder="Search by name or code..."
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select name="category" id="categoryFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category }}" {{ request('category') === $category ? 'selected' : '' }}>
+                                {{ $category }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" id="statusFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">All</option>
+                        <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select id="categoryFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category }}">{{ $category }}</option>
-                    @endforeach
-                </select>
+            <div class="mt-4 flex items-center gap-3">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                    Search
+                </button>
+                @if(request('search') || request('category') || request('status'))
+                    <a href="{{ route('admin.supplies.index') }}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50">
+                        Clear Filters
+                    </a>
+                    <span class="text-sm text-gray-500">
+                        Showing {{ $supplies->total() }} result(s)
+                        @if(request('search')) for "<strong>{{ request('search') }}</strong>"@endif
+                    </span>
+                @endif
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select id="statusFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-        </div>
+        </form>
     </div>
 
     @if(session('success'))
@@ -82,11 +103,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" id="suppliesTable">
                 @forelse($supplies as $supply)
-                    <tr class="hover:bg-gray-50 supply-row" 
-                        data-category="{{ $supply->category }}" 
-                        data-status="{{ $supply->is_active ? 'active' : 'inactive' }}" 
-                        data-name="{{ strtolower($supply->name) }}" 
-                        data-code="{{ strtolower($supply->item_code) }}">
+                    <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="text-sm font-mono font-medium text-gray-900">{{ $supply->item_code }}</span>
                         </td>
@@ -137,7 +154,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                 </svg>
                                 <p class="mt-2 text-sm font-medium text-gray-900">No supplies found</p>
-                                <p class="mt-1 text-sm text-gray-500">Get started by creating a new supply item.</p>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    @if(request('search') || request('category') || request('status'))
+                                        Try adjusting your search or filters.
+                                    @else
+                                        Get started by creating a new supply item.
+                                    @endif
+                                </p>
                             </div>
                         </td>
                     </tr>
@@ -147,7 +170,8 @@
 
         @if($supplies->hasPages())
             <div class="px-6 py-4 border-t border-gray-200">
-                {{ $supplies->links() }}
+                {{-- Keep search params when paginating --}}
+                {{ $supplies->appends(request()->query())->links() }}
             </div>
         @endif
     </div>
@@ -155,29 +179,9 @@
 
 @push('scripts')
 <script>
-document.getElementById('searchInput').addEventListener('input', filterSupplies);
-document.getElementById('categoryFilter').addEventListener('change', filterSupplies);
-document.getElementById('statusFilter').addEventListener('change', filterSupplies);
-
-function filterSupplies() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    const rows = document.querySelectorAll('.supply-row');
-    
-    rows.forEach(row => {
-        const name = row.dataset.name;
-        const code = row.dataset.code;
-        const rowCategory = row.dataset.category;
-        const rowStatus = row.dataset.status;
-        
-        const matchesSearch = name.includes(search) || code.includes(search);
-        const matchesCategory = !category || rowCategory === category;
-        const matchesStatus = !status || rowStatus === status;
-        
-        row.style.display = (matchesSearch && matchesCategory && matchesStatus) ? '' : 'none';
-    });
-}
+// Auto-submit on dropdown change
+document.getElementById('categoryFilter').addEventListener('change', () => document.getElementById('filterForm').submit());
+document.getElementById('statusFilter').addEventListener('change',  () => document.getElementById('filterForm').submit());
 
 async function toggleStatus(id) {
     try {

@@ -3,89 +3,165 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Supply Catalog</h1>
-        <p class="mt-1 text-sm text-gray-600">Browse and request supplies for your department</p>
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Supply Catalog</h1>
+            <p class="mt-1 text-sm text-gray-600">Browse and request supplies for your department</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="openSpecialRequestModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 whitespace-nowrap">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Custom Request
+            </button>
+            <button onclick="toggleCartModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 whitespace-nowrap">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Request List
+                <span id="cartCount" class="inline-flex items-center justify-center bg-white text-blue-600 text-xs font-bold rounded-full w-5 h-5 shrink-0">0</span>
+            </button>
+        </div>
     </div>
 
-<!-- Filters -->
-<div class="bg-white shadow rounded-lg p-6 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-            <input type="text" id="searchInput" placeholder="Search supplies..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select id="categoryFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">All Categories</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category }}">{{ $category }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="flex items-end space-x-2">
-
-            <!-- Custom Request Button -->
-            <button onclick="openSpecialRequestModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
-    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-    </svg>
-    Custom Request
-</button>
-            <!-- Cart Button -->
-            <button onclick="toggleCartModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
-    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-    </svg>
-    Request List
-    <span id="cartCount" class="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 shrink-0">0</span>
-</button>
-        </div>
-    </div>
-</div>
-
-<!-- Supply Grid -->
-    <div id="supplyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @foreach($supplies as $supply)
-            <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 supply-card" data-category="{{ $supply->category }}" data-name="{{ strtolower($supply->name) }}">
-                <div class="p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ $supply->name }}</h3>
-                            <p class="text-sm text-gray-500">{{ $supply->item_code }}</p>
-                        </div>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ $supply->category }}
-                        </span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-4">{{ $supply->description }}</p>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-500">Unit: {{ $supply->unit }}</span>
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-    <button onclick="document.getElementById('qty-{{ $supply->id }}').stepDown()" 
-        class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">−</button>
-    <input type="number" id="qty-{{ $supply->id }}" value="1" min="1" max="999"
-        class="w-12 text-center text-sm border-0 focus:ring-0 py-1.5 font-semibold text-gray-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-    <button onclick="document.getElementById('qty-{{ $supply->id }}').stepUp()"
-        class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">+</button>
-</div>
-                            <button onclick="addToCart({{ $supply->id }}, '{{ $supply->name }}', '{{ $supply->item_code }}', '{{ $supply->unit }}')" 
-                                class="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-700">
-                                Add to list
-                            </button>
-                        </div>
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <form method="GET" action="{{ route('employee.catalog') }}" id="filterForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" name="search" id="searchInput"
+                        value="{{ request('search') }}"
+                        placeholder="Search by name or code..."
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select name="category" id="categoryFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category }}" {{ request('category') === $category ? 'selected' : '' }}>
+                                {{ $category }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <div class="flex items-center gap-3 w-full">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                            Search
+                        </button>
+                        @if(request('search') || request('category'))
+                            <a href="{{ route('employee.catalog') }}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50">
+                                Clear Filters
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
-        @endforeach
+            @if(request('search') || request('category'))
+                <div class="mt-3">
+                    <span class="text-sm text-gray-500">
+                        Showing {{ $supplies->total() }} result(s)
+                        @if(request('search')) for "<strong>{{ request('search') }}</strong>"@endif
+                    </span>
+                </div>
+            @endif
+        </form>
     </div>
+
+    <!-- Supplies Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($supplies as $supply)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-mono font-medium text-gray-900">{{ $supply->item_code }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">{{ $supply->name }}</div>
+                            @if($supply->description)
+                                <div class="text-sm text-gray-500 truncate max-w-xs">{{ $supply->description }}</div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ $supply->category }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $supply->unit }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            @if($supply->unit_cost)
+                                <span class="text-sm font-semibold text-gray-800">₱{{ number_format($supply->unit_cost, 2) }}</span>
+                            @else
+                                <span class="text-sm text-gray-400">—</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center border border-gray-200 rounded-lg overflow-hidden w-28 mx-auto">
+                                <button type="button" onclick="document.getElementById('qty-{{ $supply->id }}').stepDown()"
+                                    class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">−</button>
+                                <input type="number" id="qty-{{ $supply->id }}" value="1" min="1" max="999"
+                                    class="w-10 text-center text-sm border-0 focus:ring-0 py-1.5 font-semibold text-gray-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <button type="button" onclick="document.getElementById('qty-{{ $supply->id }}').stepUp()"
+                                    class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-bold transition">+</button>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <button onclick="addToCart({{ $supply->id }}, '{{ addslashes($supply->name) }}', '{{ $supply->item_code }}', '{{ $supply->unit }}')"
+                                class="px-3 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded hover:bg-blue-700">
+                                Add to list
+                            </button>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="text-gray-400">
+                                <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                </svg>
+                                <p class="mt-2 text-sm font-medium text-gray-900">No supplies found</p>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    @if(request('search') || request('category'))
+                                        Try adjusting your search or filters.
+                                    @else
+                                        No supplies are available at the moment.
+                                    @endif
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        @if($supplies->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200">
+                {{ $supplies->appends(request()->query())->links() }}
+            </div>
+        @endif
+    </div>
+</div>
 
 <!-- Cart Modal -->
 <div id="cartModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col">
-        <!-- Modal Header -->
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-900">Request Listing</h2>
             <button onclick="toggleCartModal()" class="text-gray-400 hover:text-gray-600">
@@ -94,15 +170,10 @@
                 </svg>
             </button>
         </div>
-
-        <!-- Modal Body - Scrollable Cart Items -->
         <div id="cartItems" class="flex-1 overflow-y-auto px-6 py-4">
             <p class="text-center text-gray-500 mt-8">Your list is empty</p>
         </div>
-
-        <!-- Modal Footer -->
         <div class="border-t border-gray-200 px-6 py-4">
-            <!-- Budget Type -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Budget Type *</label>
                 <select id="budgetType" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -110,14 +181,10 @@
                     <option value="not_budgeted">Not Budgeted</option>
                 </select>
             </div>
-
-            <!-- Purpose -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Purpose *</label>
                 <textarea id="requestPurpose" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Describe the purpose of this request..."></textarea>
             </div>
-
-            <!-- Submit Button -->
             <button onclick="submitRequest()" id="submitBtn" class="w-full px-4 py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
                 Submit Request
             </button>
@@ -136,12 +203,9 @@
                 </svg>
             </button>
         </div>
-
         <p class="text-sm text-gray-600 mb-6">Request supplies that are not in the catalog. Please provide detailed information.</p>
-
         <form id="specialRequestForm">
             <div class="space-y-4">
-                <!-- Budget Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Budget Type *</label>
                     <select id="special_budget_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
@@ -149,40 +213,19 @@
                         <option value="not_budgeted">Not Budgeted</option>
                     </select>
                 </div>
-
-                <!-- Item Description -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Item Description *</label>
-                    <textarea
-                        id="special_item_description"
-                        rows="4"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Describe the item(s) you need in detail..."
-                        required
-                    ></textarea>
+                    <textarea id="special_item_description" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Describe the item(s) you need in detail..." required></textarea>
                     <p class="text-xs text-gray-500 mt-1">Be as specific as possible (brand, quantity, specifications, etc.)</p>
                 </div>
-
-                <!-- Purpose -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Purpose *</label>
-                    <textarea
-                        id="special_purpose"
-                        rows="3"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Why do you need this item?"
-                        required
-                    ></textarea>
+                    <textarea id="special_purpose" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Why do you need this item?" required></textarea>
                 </div>
             </div>
-
             <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" onclick="closeSpecialRequestModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">
-                    Submit Custom Request
-                </button>
+                <button type="button" onclick="closeSpecialRequestModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">Submit Custom Request</button>
             </div>
         </form>
     </div>
@@ -193,41 +236,26 @@
 let cart = JSON.parse(localStorage.getItem('supply_cart') || '[]');
 updateCart();
 
-// Toggle Cart Modal
-function toggleCartModal() {
-    const modal = document.getElementById('cartModal');
-    modal.classList.toggle('hidden');
-}   
+document.getElementById('categoryFilter').addEventListener('change', () => document.getElementById('filterForm').submit());
 
-// Close modal when clicking outside
+function toggleCartModal() {
+    document.getElementById('cartModal').classList.toggle('hidden');
+}
 document.getElementById('cartModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        toggleCartModal();
-    }
+    if (e.target === this) toggleCartModal();
 });
 
 function addToCart(id, name, code, unit) {
     const qtyInput = document.getElementById('qty-' + id);
     const qty = Math.max(1, parseInt(qtyInput?.value) || 1);
     const existing = cart.find(item => item.supply_id === id);
-
     if (existing) {
         existing.quantity += qty;
     } else {
-        cart.push({
-            supply_id: id,
-            name: name,
-            code: code,
-            unit: unit,
-            quantity: qty
-        });
+        cart.push({ supply_id: id, name, code, unit, quantity: qty });
     }
-
-    if (qtyInput) qtyInput.value = 1; // reset after adding
-
+    if (qtyInput) qtyInput.value = 1;
     updateCart();
-
-    // Show toast notification
     showToast('Added to list!', 'success');
 }
 
@@ -240,11 +268,8 @@ function updateQuantity(id, change) {
     const item = cart.find(item => item.supply_id === id);
     if (item) {
         item.quantity += change;
-        if (item.quantity <= 0) {
-            removeFromCart(id);
-        } else {
-            updateCart();
-        }
+        if (item.quantity <= 0) removeFromCart(id);
+        else updateCart();
     }
 }
 
@@ -287,80 +312,38 @@ function updateCart() {
     }
 }
 
-// Special Request Modal Functions
-function openSpecialRequestModal() {
-    document.getElementById('specialRequestModal').classList.remove('hidden');
-}
+function openSpecialRequestModal() { document.getElementById('specialRequestModal').classList.remove('hidden'); }
+function closeSpecialRequestModal() { document.getElementById('specialRequestModal').classList.add('hidden'); document.getElementById('specialRequestForm')?.reset(); }
+document.getElementById('specialRequestModal')?.addEventListener('click', function(e) { if (e.target === this) closeSpecialRequestModal(); });
 
-function closeSpecialRequestModal() {
-    document.getElementById('specialRequestModal').classList.add('hidden');
-    const form = document.getElementById('specialRequestForm');
-    if (form) form.reset();
-}
-
-// Close special modal when clicking outside
-document.getElementById('specialRequestModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeSpecialRequestModal();
-    }
+document.getElementById('specialRequestForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = {
+        budget_type:      document.getElementById('special_budget_type').value,
+        item_description: document.getElementById('special_item_description').value.trim(),
+        purpose:          document.getElementById('special_purpose').value.trim()
+    };
+    if (!formData.item_description || !formData.purpose) { showToast('Please fill in all required fields', 'error'); return; }
+    try {
+        const response = await fetch('{{ route("employee.requests.special") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast('Custom request submitted successfully!', 'success');
+            closeSpecialRequestModal();
+            setTimeout(() => { window.location.href = '{{ route("employee.requests.index") }}'; }, 1000);
+        } else { showToast('Failed to submit request', 'error'); }
+    } catch (error) { showToast('An error occurred. Please try again.', 'error'); }
 });
 
-const specialForm = document.getElementById('specialRequestForm');
-if (specialForm) {
-    specialForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const formData = {
-            budget_type: document.getElementById('special_budget_type').value,
-            item_description: document.getElementById('special_item_description').value.trim(),
-            purpose: document.getElementById('special_purpose').value.trim()
-        };
-
-        if (!formData.item_description || !formData.purpose) {
-            showToast('Please fill in all required fields', 'error');
-            return;
-        }
-
-        try {
-            const response = await fetch('{{ route("employee.requests.special") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast('Custom request submitted successfully!', 'success');
-                closeSpecialRequestModal();
-                setTimeout(() => {
-                    window.location.href = '{{ route("employee.requests.index") }}';
-                }, 1000);
-            } else {
-                showToast('Failed to submit request', 'error');
-            }
-        } catch (error) {
-            showToast('An error occurred. Please try again.', 'error');
-        }
-    });
-}
-
 async function submitRequest() {
-    const purpose = document.getElementById('requestPurpose').value.trim();
+    const purpose    = document.getElementById('requestPurpose').value.trim();
     const budgetType = document.getElementById('budgetType').value;
-
-    if (!purpose) {
-        showToast('Please provide a purpose for this request', 'error');
-        return;
-    }
-
-    if (cart.length === 0) {
-        showToast('Your cart is empty', 'error');
-        return;
-    }
+    if (!purpose) { showToast('Please provide a purpose for this request', 'error'); return; }
+    if (cart.length === 0) { showToast('Your cart is empty', 'error'); return; }
 
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -369,84 +352,33 @@ async function submitRequest() {
     try {
         const response = await fetch('{{ route("employee.requests.store") }}', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({
-                purpose: purpose,
-                budget_type: budgetType,
-                items: cart
-            })
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: JSON.stringify({ purpose, budget_type: budgetType, items: cart })
         });
-
         const data = await response.json();
-
-       if (data.success) {
-    showToast('Request submitted successfully!', 'success');
-    cart = [];
-    localStorage.removeItem('supply_cart');
-    updateCart();
+        if (data.success) {
+            showToast('Request submitted successfully!', 'success');
+            cart = [];
+            localStorage.removeItem('supply_cart');
+            updateCart();
             document.getElementById('requestPurpose').value = '';
             toggleCartModal();
-
-            // Redirect to requests page after 1 second
-            setTimeout(() => {
-                window.location.href = '{{ route("employee.requests.index") }}';
-            }, 1000);
-        } else {
-            showToast('Failed to submit request', 'error');
-        }
-    } catch (error) {
-        showToast('An error occurred. Please try again.', 'error');
-    } finally {
+            setTimeout(() => { window.location.href = '{{ route("employee.requests.index") }}'; }, 1000);
+        } else { showToast('Failed to submit request', 'error'); }
+    } catch (error) { showToast('An error occurred. Please try again.', 'error'); }
+    finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Request';
     }
 }
 
-// Search and filter functionality
-document.getElementById('searchInput').addEventListener('input', filterSupplies);
-document.getElementById('categoryFilter').addEventListener('change', filterSupplies);
-
-function filterSupplies() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
-    const cards = document.querySelectorAll('.supply-card');    
-
-    cards.forEach(card => {
-        const name = card.dataset.name;
-        const cardCategory = card.dataset.category;
-
-        const matchesSearch = name.includes(search);
-        const matchesCategory = !category || cardCategory === category;
-
-        if (matchesSearch && matchesCategory) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Toast notification
 function showToast(message, type = 'info') {
-    const colors = {
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-        info: 'bg-blue-500'
-    };
-
+    const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
     const toast = document.createElement('div');
     toast.className = `fixed bottom-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
     toast.textContent = message;
-
     document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 </script>
 @endpush

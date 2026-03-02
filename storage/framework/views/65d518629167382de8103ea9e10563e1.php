@@ -25,6 +25,8 @@
             class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
             Unlock
         </button>
+    </div>
+</div>
 
         <a href="<?php echo e(route('admin.dashboard')); ?>" class="block mt-4 text-sm text-gray-400 hover:text-gray-600">
             ← Back to Dashboard

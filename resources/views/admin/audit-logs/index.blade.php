@@ -136,7 +136,6 @@
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Details</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -175,15 +174,10 @@
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="text-xs text-gray-500 font-mono">{{ $log->ip_address }}</div>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center">
-                                <button onclick="showDetails({{ $log->id }})" class="text-indigo-600 hover:text-indigo-900 text-xs font-medium">
-                                    View Details
-                                </button>
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-12 text-center">
+                            <td colspan="6" class="px-4 py-12 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
@@ -201,45 +195,4 @@
         </div>
     </div>
 </div>
-
-<!-- Details Modal -->
-<div id="detailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Audit Log Details</h3>
-            <button onclick="closeDetails()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        <div id="detailsContent">
-            <!-- Content loaded via JS -->
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-async function showDetails(logId) {
-    const modal = document.getElementById('detailsModal');
-    const content = document.getElementById('detailsContent');
-    
-    content.innerHTML = '<p class="text-center py-8">Loading...</p>';
-    modal.classList.remove('hidden');
-    
-    try {
-        const response = await fetch(`/admin/audit-logs/${logId}`);
-        const html = await response.text();
-        content.innerHTML = html;
-    } catch (error) {
-        content.innerHTML = '<p class="text-center text-red-600 py-8">Error loading details</p>';
-    }
-}
-
-function closeDetails() {
-    document.getElementById('detailsModal').classList.add('hidden');
-}
-</script>
-@endpush
 @endsection

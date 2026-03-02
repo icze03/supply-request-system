@@ -11,10 +11,28 @@ use App\Models\AuditLog;
 class SupplyController extends Controller
 {
     // List all supplies
-    public function index()
+    public function index(Request $request)
     {
-        $supplies = Supply::orderBy('category')->orderBy('name')->paginate(20);
-        $categories = Supply::getCategories();
+        $query = Supply::orderBy('category')->orderBy('name');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('item_code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        $supplies    = $query->paginate(20)->withQueryString();
+        $categories  = Supply::getCategories();
 
         return view('admin.supplies.index', compact('supplies', 'categories'));
     }
@@ -30,9 +48,9 @@ class SupplyController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'category' => 'required|string|max:100',
-            'unit' => 'required|string|max:50',
+            'name'        => 'required|string|max:255',
+            'category'    => 'required|string|max:100',
+            'unit'        => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -41,31 +59,30 @@ class SupplyController extends Controller
         }
 
         $supply = Supply::create($request->all());
-        
-        // ✅ LOG SUPPLY CREATION - Simple direct method
+
         try {
             AuditLog::create([
-                'action' => 'supply_created',
-                'model_type' => get_class($supply),
-                'model_id' => $supply->id,
-                'user_id' => auth()->id(),
-                'department_id' => auth()->user() ? auth()->user()->department_id : null,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'new_values' => json_encode($supply->getAttributes()),
-                'description' => "New supply item added: {$supply->item_name}",
-                'metadata' => json_encode([
-                    'category' => $supply->category,
-                    'unit' => $supply->unit,
-                    'initial_stock' => $supply->stock_quantity ?? 0,
-                    'item_code' => $supply->item_code,
-                    'created_by' => auth()->user() ? auth()->user()->name : 'System'
-                ])
+                'action'        => 'supply_created',
+                'model_type'    => get_class($supply),
+                'model_id'      => $supply->id,
+                'user_id'       => auth()->id(),
+                'department_id' => auth()->user()?->department_id,
+                'ip_address'    => request()->ip(),
+                'user_agent'    => request()->userAgent(),
+                'new_values'    => json_encode($supply->getAttributes()),
+                'description'   => "New supply item added: {$supply->item_name}",
+                'metadata'      => json_encode([
+                    'category'     => $supply->category,
+                    'unit'         => $supply->unit,
+                    'initial_stock'=> $supply->stock_quantity ?? 0,
+                    'item_code'    => $supply->item_code,
+                    'created_by'   => auth()->user()?->name ?? 'System',
+                ]),
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to create audit log for supply creation', [
                 'supply_id' => $supply->id,
-                'error' => $e->getMessage()
+                'error'     => $e->getMessage(),
             ]);
         }
 
@@ -76,7 +93,7 @@ class SupplyController extends Controller
     // Edit form
     public function edit($id)
     {
-        $supply = Supply::findOrFail($id);
+        $supply     = Supply::findOrFail($id);
         $categories = Supply::getCategories();
 
         return view('admin.supplies.edit', compact('supply', 'categories'));
@@ -138,12 +155,12 @@ class SupplyController extends Controller
                         'item_code'      => $supply->item_code,
                         'category'       => $supply->category,
                         'updated_by'     => auth()->user()?->name ?? 'System',
-                    ])
+                    ]),
                 ]);
             } catch (\Exception $e) {
                 \Log::error('Failed to create audit log for supply update', [
                     'supply_id' => $supply->id,
-                    'error'     => $e->getMessage()
+                    'error'     => $e->getMessage(),
                 ]);
             }
         }
@@ -155,42 +172,40 @@ class SupplyController extends Controller
     // Toggle active status
     public function toggleStatus($id)
     {
-        $supply = Supply::findOrFail($id);
-        
+        $supply    = Supply::findOrFail($id);
         $oldStatus = $supply->is_active;
         $supply->update(['is_active' => !$supply->is_active]);
         $newStatus = $supply->is_active;
-        
-        // ✅ LOG STATUS TOGGLE
+
         try {
             AuditLog::create([
-                'action' => $newStatus ? 'supply_activated' : 'supply_deactivated',
-                'model_type' => get_class($supply),
-                'model_id' => $supply->id,
-                'user_id' => auth()->id(),
-                'department_id' => auth()->user() ? auth()->user()->department_id : null,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'old_values' => json_encode(['is_active' => $oldStatus]),
-                'new_values' => json_encode(['is_active' => $newStatus]),
-                'description' => "Supply item " . ($newStatus ? 'activated' : 'deactivated') . ": {$supply->item_name}",
-                'metadata' => json_encode([
+                'action'        => $newStatus ? 'supply_activated' : 'supply_deactivated',
+                'model_type'    => get_class($supply),
+                'model_id'      => $supply->id,
+                'user_id'       => auth()->id(),
+                'department_id' => auth()->user()?->department_id,
+                'ip_address'    => request()->ip(),
+                'user_agent'    => request()->userAgent(),
+                'old_values'    => json_encode(['is_active' => $oldStatus]),
+                'new_values'    => json_encode(['is_active' => $newStatus]),
+                'description'   => 'Supply item ' . ($newStatus ? 'activated' : 'deactivated') . ": {$supply->item_name}",
+                'metadata'      => json_encode([
                     'item_code' => $supply->item_code,
-                    'category' => $supply->category,
-                    'action_by' => auth()->user() ? auth()->user()->name : 'System'
-                ])
+                    'category'  => $supply->category,
+                    'action_by' => auth()->user()?->name ?? 'System',
+                ]),
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to create audit log for status toggle', [
                 'supply_id' => $supply->id,
-                'error' => $e->getMessage()
+                'error'     => $e->getMessage(),
             ]);
         }
 
         return response()->json([
-            'success' => true,
+            'success'   => true,
             'is_active' => $supply->is_active,
-            'message' => $supply->is_active ? 'Supply activated.' : 'Supply deactivated.'
+            'message'   => $supply->is_active ? 'Supply activated.' : 'Supply deactivated.',
         ]);
     }
 
@@ -198,79 +213,75 @@ class SupplyController extends Controller
     public function destroy($id)
     {
         $supply = Supply::findOrFail($id);
-        
-        // Check if used in any requests
+
         if ($supply->requestItems()->count() > 0) {
-            // ✅ LOG FAILED DELETION ATTEMPT
             try {
                 AuditLog::create([
-                    'action' => 'supply_deletion_failed',
-                    'model_type' => get_class($supply),
-                    'model_id' => $supply->id,
-                    'user_id' => auth()->id(),
-                    'department_id' => auth()->user() ? auth()->user()->department_id : null,
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                    'description' => "Failed to delete supply item: {$supply->item_name} (in use)",
-                    'metadata' => json_encode([
-                        'reason' => 'Supply has been used in requests',
+                    'action'        => 'supply_deletion_failed',
+                    'model_type'    => get_class($supply),
+                    'model_id'      => $supply->id,
+                    'user_id'       => auth()->id(),
+                    'department_id' => auth()->user()?->department_id,
+                    'ip_address'    => request()->ip(),
+                    'user_agent'    => request()->userAgent(),
+                    'description'   => "Failed to delete supply item: {$supply->item_name} (in use)",
+                    'metadata'      => json_encode([
+                        'reason'        => 'Supply has been used in requests',
                         'request_count' => $supply->requestItems()->count(),
-                        'item_code' => $supply->item_code,
-                        'attempted_by' => auth()->user() ? auth()->user()->name : 'System'
-                    ])
+                        'item_code'     => $supply->item_code,
+                        'attempted_by'  => auth()->user()?->name ?? 'System',
+                    ]),
                 ]);
             } catch (\Exception $e) {
                 \Log::error('Failed to create audit log for failed deletion', [
                     'supply_id' => $supply->id,
-                    'error' => $e->getMessage()
+                    'error'     => $e->getMessage(),
                 ]);
             }
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete supply that has been used in requests.'
+                'message' => 'Cannot delete supply that has been used in requests.',
             ], 422);
         }
 
-        // Save data before deletion
         $supplyData = [
-            'item_name' => $supply->item_name,
-            'item_code' => $supply->item_code,
-            'category' => $supply->category,
-            'unit' => $supply->unit,
+            'item_name'      => $supply->item_name,
+            'item_code'      => $supply->item_code,
+            'category'       => $supply->category,
+            'unit'           => $supply->unit,
             'stock_quantity' => $supply->stock_quantity,
-            'description' => $supply->description
+            'description'    => $supply->description,
         ];
-        
-        // ✅ LOG BEFORE DELETION (Important: log before deleting!)
+
         try {
             AuditLog::create([
-                'action' => 'supply_deleted',
-                'model_type' => get_class($supply),
-                'model_id' => $supply->id,
-                'user_id' => auth()->id(),
-                'department_id' => auth()->user() ? auth()->user()->department_id : null,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'old_values' => json_encode($supply->getAttributes()),
-                'description' => "Supply item deleted: {$supply->item_name}",
-                'metadata' => json_encode(array_merge($supplyData, [
-                    'deleted_by' => auth()->user() ? auth()->user()->name : 'System',
-                    'deletion_reason' => 'Manual deletion by admin'
-                ]))
+                'action'        => 'supply_deleted',
+                'model_type'    => get_class($supply),
+                'model_id'      => $supply->id,
+                'user_id'       => auth()->id(),
+                'department_id' => auth()->user()?->department_id,
+                'ip_address'    => request()->ip(),
+                'user_agent'    => request()->userAgent(),
+                'old_values'    => json_encode($supply->getAttributes()),
+                'description'   => "Supply item deleted: {$supply->item_name}",
+                'metadata'      => json_encode(array_merge($supplyData, [
+                    'deleted_by'      => auth()->user()?->name ?? 'System',
+                    'deletion_reason' => 'Manual deletion by admin',
+                ])),
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to create audit log for deletion', [
                 'supply_id' => $supply->id,
-                'error' => $e->getMessage()
+                'error'     => $e->getMessage(),
             ]);
         }
-        
+
         $supply->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Supply deleted successfully.'
+            'message' => 'Supply deleted successfully.',
         ]);
     }
 }

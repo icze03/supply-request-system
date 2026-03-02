@@ -1,100 +1,164 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
+<?php
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
-            </div>
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Employee\CatalogController;
+use App\Http\Controllers\Employee\RequestController;
+use App\Http\Controllers\Manager\ApprovalController;
+use App\Http\Controllers\Admin\SupplyController;
+use App\Http\Controllers\Admin\ReleaseController;
+use Illuminate\Support\Facades\Route;
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+// Public routes
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
+// Authenticated routes
+Route::middleware('auth')->group(function () {
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
+    // Profile routes (from Breeze)
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
+    // Dashboard (role-based redirect)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
+    // =============================================
+    // EMPLOYEE ROUTES
+    // =============================================
+    Route::middleware('employee')->prefix('employee')->name('employee.')->group(function () {
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
+        // Catalog
+        Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
+        Route::get('/catalog/supplies', [CatalogController::class, 'getSupplies'])->name('catalog.supplies');
+        Route::get('/catalog/{id}', [CatalogController::class, 'show'])->name('catalog.show');
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
+        // Requests
+        Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
+        Route::get('/requests/{id}', [RequestController::class, 'show'])->name('requests.show');
+        Route::post('/requests', [RequestController::class, 'store'])->name('requests.store');
+        Route::post('/requests/special', [RequestController::class, 'storeSpecial'])->name('requests.special');
+        Route::delete('/requests/{id}', [RequestController::class, 'cancel'])->name('requests.cancel');
+        Route::post('/requests/{id}/return', [RequestController::class, 'submitReturn'])->name('requests.return');
+        Route::get('/requests/{id}/voucher', [RequestController::class, 'voucher'])->name('requests.voucher');
+    });
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
+    // =============================================
+    // MANAGER ROUTES
+    // =============================================
+    Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
+        // Approvals
+        Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
+        Route::get('/approvals/{id}', [ApprovalController::class, 'show'])->name('approvals.show');
+        Route::post('/approvals/{id}/approve', [ApprovalController::class, 'approve'])->name('approvals.approve');
+        Route::post('/approvals/{id}/reject', [ApprovalController::class, 'reject'])->name('approvals.reject');
+        Route::post('/approvals/{id}/update-quantity', [ApprovalController::class, 'updateQuantity'])->name('approvals.update-quantity');
 
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+        // Request detail view
+        Route::get('/requests/{id}', [ApprovalController::class, 'show'])->name('requests.show');
+        Route::post('/requests/{id}/update-item', [ApprovalController::class, 'updateItem'])->name('requests.update-item');
+    });
 
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
+    // =============================================
+    // ADMIN ROUTES
+    // =============================================
+    Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])
+            ->name('dashboard');
+
+        // Dashboard - Department Requests
+        Route::get('/dashboard/department/{id}/requests', [DashboardController::class, 'departmentRequests'])
+            ->name('admin.dashboard.department.requests');
+
+        // ── PIN Verify Routes (must be before {id} wildcard routes) ──
+        Route::post('/departments/verify-pin', [App\Http\Controllers\Admin\DepartmentController::class, 'verifyPin'])
+            ->name('departments.verify-pin');
+        Route::post('/users/verify-pin', [App\Http\Controllers\Admin\UserManagementController::class, 'verifyPin'])
+            ->name('users.verify-pin');
+
+        // ── Department Management ─────────────────────────────────────
+        Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
+            ->name('departments.index');
+        Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
+            ->name('departments.store');
+        Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
+            ->name('departments.update');
+        Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
+            ->name('departments.destroy');
+        Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
+            ->name('departments.budget.reset');
+
+        // ── User Management ───────────────────────────────────────────
+        Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])
+            ->name('users.index');
+        Route::post('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'store'])
+            ->name('users.store');
+        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'update'])
+            ->name('users.update');
+        Route::put('/users/{id}/password', [App\Http\Controllers\Admin\UserManagementController::class, 'changePassword'])
+            ->name('users.password');
+        Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])
+            ->name('users.destroy');
+
+        // ── Supply Management ─────────────────────────────────────────
+        Route::get('/supplies', [App\Http\Controllers\AdminController::class, 'suppliesIndex'])
+            ->name('supplies.index');
+        Route::get('/supplies/create', [App\Http\Controllers\AdminController::class, 'suppliesCreate'])
+            ->name('supplies.create');
+        Route::post('/supplies', [App\Http\Controllers\AdminController::class, 'suppliesStore'])
+            ->name('supplies.store');
+        Route::get('/supplies/{id}/edit', [App\Http\Controllers\AdminController::class, 'suppliesEdit'])
+            ->name('supplies.edit');
+        Route::put('/supplies/{id}', [App\Http\Controllers\AdminController::class, 'suppliesUpdate'])
+            ->name('supplies.update');
+        Route::post('/supplies/{id}/toggle', [App\Http\Controllers\AdminController::class, 'suppliesToggle'])
+            ->name('supplies.toggle');
+        Route::delete('/supplies/{id}', [App\Http\Controllers\AdminController::class, 'suppliesDestroy'])
+            ->name('supplies.destroy');
+
+        // Low Stock
+        Route::get('/low-stock', [App\Http\Controllers\AdminController::class, 'lowStockIndex'])
+            ->name('low-stock.index');
+
+        // ── Release Management ────────────────────────────────────────
+        Route::get('/releases', [App\Http\Controllers\Admin\ReleaseController::class, 'index'])
+            ->name('releases.index');
+        Route::get('/releases/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'show'])
+            ->name('releases.show');
+        Route::get('/releases/{id}/details', [ReleaseController::class, 'details'])
+            ->name('releases.details');
+        Route::post('/releases/{id}/release', [App\Http\Controllers\Admin\ReleaseController::class, 'release'])
+            ->name('releases.release');
+        Route::post('/releases/{id}/requeue', [ReleaseController::class, 'closeAndRequeue'])
+            ->name('admin.releases.requeue');
+        Route::post('/releases/{id}/reject', [App\Http\Controllers\Admin\ReleaseController::class, 'reject'])
+            ->name('releases.reject');
+        Route::post('/releases/{id}/approve-return', [App\Http\Controllers\Admin\ReleaseController::class, 'approveReturn'])
+            ->name('releases.approveReturn');
+        Route::post('/releases/{id}/reject-return', [App\Http\Controllers\Admin\ReleaseController::class, 'rejectReturn'])
+            ->name('releases.rejectReturn');
+        Route::delete('/releases/{id}/delete', [App\Http\Controllers\Admin\ReleaseController::class, 'destroy'])
+            ->name('releases.destroy');
+        Route::delete('/releases/transactions/{id}', [ReleaseController::class, 'destroyTransaction'])
+            ->name('admin.releases.transactions.destroy');
+
+        // ── Voucher ───────────────────────────────────────────────────
+        Route::get('/voucher/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'voucher'])
+            ->name('voucher');
+
+        // ── Audit Logs ────────────────────────────────────────────────
+        Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])
+            ->name('audit-logs.index');
+        Route::get('/audit-logs/{id}', [App\Http\Controllers\Admin\AuditLogController::class, 'show'])
+            ->name('audit-logs.show');
+        Route::get('/audit-logs/export/csv', [App\Http\Controllers\Admin\AuditLogController::class, 'export'])
+            ->name('audit-logs.export');
+    });
+});
+
+require __DIR__.'/auth.php';

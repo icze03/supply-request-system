@@ -101,16 +101,18 @@
                                                 $remaining = $item->remaining_quantity ?? $item->quantity;
                                                 $original  = $item->original_quantity  ?? $item->quantity;
                                             @endphp
-                                            <div class="flex items-center justify-between px-4 py-2">
-                                                <span class="text-sm text-gray-800">{{ $item->item_name }}</span>
-                                                <div class="flex items-center gap-3">
+                                            <div class="flex items-center justify-between px-4 py-2.5 gap-3">
+                                                {{-- Item name — takes all available space, truncates if too long --}}
+                                                <span class="flex-1 min-w-0 text-sm text-gray-800 truncate">{{ $item->item_name }}</span>
+                                                {{-- Right side badges — fixed width so every row aligns --}}
+                                                <div class="shrink-0 flex items-center justify-end gap-2" style="min-width:200px;">
                                                     @if($released > 0 && $remaining > 0)
-                                                        <span class="text-xs text-blue-600 font-medium">{{ $released }}/{{ $original }} released</span>
-                                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">{{ $remaining }} pending</span>
+                                                        <span class="text-xs text-blue-600 font-medium whitespace-nowrap">{{ $released }}/{{ $original }} released</span>
+                                                        <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700 whitespace-nowrap">{{ $remaining }} pending</span>
                                                     @elseif($released > 0 && $remaining == 0)
-                                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">✓ Done</span>
+                                                        <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">✓ Done</span>
                                                     @else
-                                                        <span class="text-sm font-semibold text-gray-700">{{ $remaining }} <span class="font-normal text-gray-400">{{ $item->supply->unit ?? 'pcs' }}</span></span>
+                                                        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">{{ $remaining }} <span class="font-normal text-gray-400">{{ $item->supply->unit ?? 'pcs' }}</span></span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -178,14 +180,15 @@
     </div>
 
     {{-- ═══════════════ RELEASED TODAY TAB ═══════════════ --}}
+    {{-- Shows every release TRANSACTION today — partial and full --}}
     <div id="todayContent" class="hidden">
         @if($releasedToday->count() > 0)
             <div class="bg-white shadow rounded-lg overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Serial / Round</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">SR Number</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Release ID / Round</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Request ID</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Department</th>
                             <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Items Released</th>
@@ -273,6 +276,7 @@
     </div>
 
     {{-- ═══════════════ HISTORY TAB ═══════════════ --}}
+    {{-- Shows every release TRANSACTION ever — partial and full --}}
     <div id="historyContent" class="hidden">
         @if($releaseHistory->count() > 0)
             <div class="bg-white shadow rounded-lg p-4 mb-4">
@@ -406,9 +410,10 @@
 </div>
 
 {{-- ═══════════════ REJECT MODAL ═══════════════ --}}
+{{-- Kept INSIDE @section so it's always in the DOM. Uses style= only, no Tailwind hidden class. --}}
 <div id="rejectModal"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
-    <div style="background:#fff; border-radius:0.75rem; max-width:28rem; width:100%; padding:1.5rem; margin:auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+    <div style="background:#fff; border-radius:0.5rem; max-width:28rem; width:100%; padding:1.5rem; margin:auto;">
         <h3 style="font-size:1.125rem; font-weight:600; color:#111827; margin-bottom:0.25rem;">Reject Request</h3>
         <p style="font-size:0.875rem; color:#6B7280; margin-bottom:1rem;">This will mark the request as rejected. Please provide a reason.</p>
         <input type="hidden" id="rejectRequestId">
@@ -417,7 +422,7 @@
                 Reason <span style="color:#EF4444;">*</span>
             </label>
             <textarea id="rejectNotes" rows="3"
-                style="width:100%; border:1px solid #D1D5DB; border-radius:0.375rem; padding:0.5rem 0.75rem; font-size:0.875rem; resize:vertical; box-sizing:border-box;"
+                style="width:100%; border:1px solid #D1D5DB; border-radius:0.375rem; padding:0.5rem 0.75rem; font-size:0.875rem; resize:vertical;"
                 placeholder="Explain why this request is being rejected..."></textarea>
             <p id="rejectError" style="display:none; font-size:0.75rem; color:#DC2626; margin-top:0.25rem;">Please enter a reason before rejecting.</p>
         </div>
@@ -434,67 +439,20 @@
     </div>
 </div>
 
-{{-- ═══════════════ RELEASE SUCCESS MODAL ═══════════════ --}}
-<div id="successModal"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
-    <div style="background:#fff; border-radius:0.75rem; max-width:26rem; width:100%; padding:2rem; margin:auto; box-shadow:0 25px 60px rgba(0,0,0,0.3); text-align:center;">
-
-        {{-- Icon --}}
-        <div id="successIcon" style="width:4rem; height:4rem; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem;">
-            <svg style="width:2rem; height:2rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-
-        {{-- Title --}}
-        <h3 id="successTitle" style="font-size:1.25rem; font-weight:700; color:#111827; margin-bottom:0.25rem;"></h3>
-
-        {{-- Serial --}}
-        <p style="font-size:0.75rem; color:#6B7280; margin-bottom:0.25rem; margin-top:0.75rem;">Serial Number</p>
-        <p id="successSerial" style="font-size:1.375rem; font-family:monospace; font-weight:700; color:#4F46E5; margin-bottom:0.5rem;"></p>
-
-        {{-- RO Number (optional) --}}
-        <p id="successRO" style="display:none; font-size:0.75rem; color:#6B7280; margin-bottom:0.75rem;"></p>
-
-        {{-- Status note --}}
-        <div id="successNote" style="border-radius:0.5rem; padding:0.625rem 0.875rem; font-size:0.75rem; margin-bottom:1.5rem; border:1px solid; text-align:left; line-height:1.5;"></div>
-
-        {{-- Actions --}}
-        <div style="display:flex; gap:0.625rem; justify-content:center;">
-            <a id="successVoucherBtn" href="#" target="_blank"
-               style="padding:0.5rem 1.25rem; background:#4F46E5; color:#fff; border-radius:0.5rem; font-size:0.875rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:0.375rem;">
-                <svg style="width:1rem; height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                View Voucher
-            </a>
-            <button id="successDoneBtn"
-                style="padding:0.5rem 1.25rem; background:#fff; color:#374151; border:1px solid #D1D5DB; border-radius:0.5rem; font-size:0.875rem; font-weight:500; cursor:pointer;">
-                Done
-            </button>
-        </div>
-
-    </div>
-</div>
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Wire up reject modal buttons — guaranteed to exist at this point
     document.getElementById('rejectCancelBtn').addEventListener('click', closeRejectModal);
     document.getElementById('rejectConfirmBtn').addEventListener('click', confirmReject);
-    document.getElementById('rejectModal').addEventListener('click', function(e) {
+
+    // Close on backdrop click
+    document.getElementById('rejectModal').addEventListener('click', function (e) {
         if (e.target === this) closeRejectModal();
     });
-    document.getElementById('successModal').addEventListener('click', function(e) {
-        if (e.target === this) closeSuccessModal();
-    });
-    document.getElementById('successDoneBtn').addEventListener('click', function() {
-        closeSuccessModal();
-        window.location.reload();
-    });
 });
-
-/* ─── Tabs ──────────────────────────────────────────────────────── */
+/* ─── Tabs ──────────────────────────────────────────────────────────── */
 function switchTab(tab) {
     ['pending','today','history'].forEach(t => {
         const btn  = document.getElementById(t + 'Tab');
@@ -509,7 +467,7 @@ function switchTab(tab) {
     });
 }
 
-/* ─── History filter ────────────────────────────────────────────── */
+/* ─── History filter ────────────────────────────────────────────────── */
 function filterHistory() {
     const search = document.getElementById('searchSR').value.toLowerCase();
     const dept   = document.getElementById('filterDept').value;
@@ -534,62 +492,12 @@ function filterHistory() {
     });
 }
 
-/* ─── Success modal ─────────────────────────────────────────────── */
-function showSuccessModal(data) {
-    const partial = data.allocation_type === 'partial';
-
-    // Icon colours
-    const icon = document.getElementById('successIcon');
-    icon.style.background = partial ? '#DBEAFE' : '#DCFCE7';
-    icon.querySelector('svg').style.color = partial ? '#2563EB' : '#16A34A';
-
-    document.getElementById('successTitle').textContent   = partial ? 'Partial Release Saved' : 'Release Successful!';
-    document.getElementById('successSerial').textContent  = data.serial_number;
-
-    // RO number
-    const roEl = document.getElementById('successRO');
-    if (data.ro_number) {
-        roEl.textContent  = 'RO: ' + data.ro_number;
-        roEl.style.display = 'block';
-    } else {
-        roEl.style.display = 'none';
-    }
-
-    // Status note
-    const note = document.getElementById('successNote');
-    if (partial) {
-        note.style.background   = '#EFF6FF';
-        note.style.borderColor  = '#BFDBFE';
-        note.style.color        = '#1D4ED8';
-        note.innerHTML = 'Items not fully allocated remain in <strong>Pending Release</strong> and can be released when stock is replenished.';
-    } else {
-        note.style.background  = '#F0FDF4';
-        note.style.borderColor = '#BBF7D0';
-        note.style.color       = '#15803D';
-        note.innerHTML = 'All items have been fully released. The request is now <strong>closed</strong>.';
-    }
-
-    // Voucher button
-    document.getElementById('successVoucherBtn').href = data.voucher_url;
-
-    // Done button label
-    document.getElementById('successDoneBtn').textContent = partial ? 'Back to Pending' : 'Done';
-
-    document.getElementById('successModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeSuccessModal() {
-    document.getElementById('successModal').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-/* ─── Reject modal ──────────────────────────────────────────────── */
+/* ─── Reject modal ──────────────────────────────────────────────────── */
 function rejectRequest(id) {
-    document.getElementById('rejectRequestId').value     = id;
-    document.getElementById('rejectNotes').value         = '';
-    document.getElementById('rejectError').style.display = 'none';
-    document.getElementById('rejectModal').style.display = 'flex';
+    document.getElementById('rejectRequestId').value      = id;
+    document.getElementById('rejectNotes').value          = '';
+    document.getElementById('rejectError').style.display  = 'none';
+    document.getElementById('rejectModal').style.display  = 'flex';
     setTimeout(() => document.getElementById('rejectNotes').focus(), 50);
 }
 
@@ -603,7 +511,10 @@ async function confirmReject() {
     const btn   = document.getElementById('rejectConfirmBtn');
     const err   = document.getElementById('rejectError');
 
-    if (!notes) { err.style.display = 'block'; return; }
+    if (!notes) {
+        err.style.display = 'block';
+        return;
+    }
     err.style.display  = 'none';
     btn.disabled       = true;
     btn.textContent    = 'Rejecting…';
@@ -611,26 +522,38 @@ async function confirmReject() {
     try {
         const res  = await fetch(`/admin/releases/${id}/reject`, {
             method: 'POST',
-            headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
             body: JSON.stringify({ notes })
         });
         const data = await res.json();
-        if (data.success) { closeRejectModal(); window.location.reload(); }
-        else { alert('Error: ' + (data.message || 'Could not reject.')); btn.disabled = false; btn.textContent = 'Confirm Rejection'; }
+        if (data.success) {
+            closeRejectModal();
+            window.location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Could not reject.'));
+            btn.disabled    = false;
+            btn.textContent = 'Confirm Rejection';
+        }
     } catch(e) {
-        alert('A network error occurred.');
+        alert('A network error occurred. Please try again.');
         btn.disabled    = false;
         btn.textContent = 'Confirm Rejection';
     }
 }
 
-/* ─── Release modal ─────────────────────────────────────────────── */
+/* ─── Release modal ─────────────────────────────────────────────────── */
 async function releaseRequest(id) {
     let requestData;
     try {
         const res = await fetch(`/admin/releases/${id}/details`);
         requestData = await res.json();
-    } catch(e) { alert('Failed to load request details.'); return; }
+    } catch(e) {
+        alert('Failed to load request details. Please try again.');
+        return;
+    }
     if (!requestData.success) { alert('Error loading request details.'); return; }
 
     const req        = requestData.request;
@@ -667,9 +590,13 @@ async function releaseRequest(id) {
                     <label class="text-xs font-medium text-gray-600 shrink-0">Release qty:</label>
                     <input type="number"
                         class="allocation-input flex-1 px-3 py-1.5 border ${stock > 0 ? 'border-gray-300' : 'border-red-300 bg-red-50'} rounded-md text-sm"
-                        data-item-id="${item.id}" data-pending="${pending}" data-stock="${stock}"
-                        value="${maxAlloc}" min="0" max="${maxAlloc}"
-                        ${stock === 0 ? 'disabled placeholder="Out of stock"' : ''} />
+                        data-item-id="${item.id}"
+                        data-pending="${pending}"
+                        data-stock="${stock}"
+                        value="${maxAlloc}"
+                        min="0" max="${maxAlloc}"
+                        ${stock === 0 ? 'disabled placeholder="Out of stock"' : ''}
+                    />
                     <span class="text-xs text-gray-400 shrink-0">${item.supply?.unit ?? 'pcs'}</span>
                 </div>
                 ${stock === 0
@@ -684,7 +611,6 @@ async function releaseRequest(id) {
 
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
-    modal.style.zIndex = '9998'; // below success modal (9999)
     modal.innerHTML = `
         <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[92vh] flex flex-col">
             <div class="px-6 py-4 border-b border-gray-200 shrink-0">
@@ -693,17 +619,19 @@ async function releaseRequest(id) {
                         <h3 class="text-lg font-bold text-gray-900">Release Supplies</h3>
                         <p class="text-sm text-gray-500 mt-0.5">SR #${req.sr_number} — ${req.department.name}</p>
                     </div>
-                    <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 ml-4 text-xl leading-none">✕</button>
+                    <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 ml-4">✕</button>
                 </div>
                 <p class="mt-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-3 py-1.5">
                     Items with qty less than pending will remain in <strong>Pending Release</strong>.
+                    This release will appear in <strong>Released Today</strong> and <strong>History</strong> immediately.
                 </p>
             </div>
             <div class="px-6 py-4 overflow-y-auto flex-1">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">RO Number <span class="text-gray-400 text-xs">(optional)</span></label>
-                    <input type="text" id="roNumber" placeholder="e.g. RO-2024-001" maxlength="100"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">RO Number <span class="text-red-500 text-xs">*</span></label>
+                    <input type="text" id="roNumber" placeholder="e.g. RO-2024-001" maxlength="100" required
                         class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                    <p id="roNumberError" class="mt-1 text-xs text-red-600 hidden">RO Number is required.</p>
                 </div>
                 ${itemsHtml}
                 ${isStandard ? '<div id="allocSummary" class="rounded-lg border px-4 py-3 mb-4 text-sm hidden"></div>' : ''}
@@ -743,6 +671,7 @@ async function releaseRequest(id) {
                 summary.innerHTML = `<strong>${full}/${all.length}</strong> fully allocated. <strong>${rem}</strong> item(s) will remain in Pending.`;
             }
         }
+
         inputs.forEach(input => {
             input.addEventListener('input', function() {
                 const max = parseInt(this.dataset.stock);
@@ -760,24 +689,30 @@ async function releaseRequest(id) {
         const notes       = document.getElementById('releaseNotes').value.trim();
         const allocations = [];
 
+        // RO Number is required
+        const roError = document.getElementById('roNumberError');
+        if (!roNumber) {
+            if (roError) { roError.classList.remove('hidden'); document.getElementById('roNumber').focus(); }
+            return;
+        }
+        if (roError) roError.classList.add('hidden');
+
         if (isStandard) {
             modal.querySelectorAll('.allocation-input').forEach(inp => {
                 allocations.push({ item_id: parseInt(inp.dataset.itemId), allocated_qty: parseInt(inp.value) || 0 });
             });
         }
 
-        // Close release modal, show spinner
         modal.remove();
 
         const spinner = document.createElement('div');
-        spinner.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9998;display:flex;align-items:center;justify-content:center;';
-        spinner.innerHTML = `<div style="background:#fff;border-radius:0.75rem;padding:2rem 2.5rem;display:flex;align-items:center;gap:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <svg style="width:1.5rem;height:1.5rem;animation:spin 1s linear infinite;color:#4F46E5;" fill="none" viewBox="0 0 24 24">
-                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-                <circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        spinner.className = 'fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center';
+        spinner.innerHTML = `<div class="bg-white rounded-xl px-8 py-6 flex items-center gap-4 shadow-xl">
+            <svg class="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span style="font-size:0.875rem;font-weight:500;color:#1F2937;">Processing release…</span>
+            <span class="text-sm font-medium text-gray-800">Processing release…</span>
         </div>`;
         document.body.appendChild(spinner);
 
@@ -791,7 +726,38 @@ async function releaseRequest(id) {
             spinner.remove();
 
             if (data.success) {
-                showSuccessModal(data);
+                const partial = data.allocation_type === 'partial';
+                const done    = document.createElement('div');
+                done.className = 'fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4';
+                done.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+                        <div class="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4 ${partial ? 'bg-blue-100' : 'bg-green-100'}">
+                            <svg class="w-7 h-7 ${partial ? 'text-blue-600' : 'text-green-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1">${partial ? 'Partial Release Saved' : 'Release Successful!'}</h3>
+                        <p class="text-sm text-gray-500 mb-1">Serial Number</p>
+                        <p class="text-xl font-mono font-bold text-indigo-600 mb-3">${data.serial_number}</p>
+                        ${data.ro_number ? `<p class="text-xs text-gray-500 mb-3">RO: <span class="font-mono font-semibold">${data.ro_number}</span></p>` : ''}
+                        <p class="text-xs ${partial ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-green-700 bg-green-50 border-green-200'} border rounded-lg px-3 py-2 mb-4">
+                            ${partial
+                                ? 'This release has been recorded in <strong>Released Today</strong> and <strong>History</strong>. Remaining items stay in Pending.'
+                                : 'All items released. The request is now fully closed and recorded in history.'
+                            }
+                        </p>
+                        <div class="flex gap-2 justify-center">
+                            <a href="${data.voucher_url}" target="_blank"
+                               class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
+                                View Voucher
+                            </a>
+                            <button onclick="window.location.reload()"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                ${partial ? 'Back to Pending' : 'Done'}
+                            </button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(done);
             } else {
                 alert('Error: ' + (data.message || 'Release failed.'));
             }
@@ -800,23 +766,29 @@ async function releaseRequest(id) {
             alert('A network error occurred. Please try again.');
         }
     };
-}
-
-/* ─── Delete transaction ────────────────────────────────────────── */
+}/* ─── Delete transaction ────────────────────────────────────────────── */
 async function deleteTransaction(txId, serial, round) {
-    if (!confirm(`Delete Round ${round} transaction (${serial})?\n\nThis removes the transaction record only. Stock and quantities are NOT reversed.\n\nThis cannot be undone.`)) return;
+    if (!confirm(`Delete Round ${round} transaction (${serial})?\n\nThis removes the transaction record only. Stock levels and request quantities are NOT reversed.\n\nThis cannot be undone.`)) return;
+
     try {
         const res  = await fetch(`/admin/releases/transactions/${txId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
         });
         const data = await res.json();
         if (data.success) {
-            document.querySelector(`button[onclick*="deleteTransaction(${txId},"]`)?.closest('tr')?.remove();
+            // Remove the row from the table
+            const btn = document.querySelector(`button[onclick*="deleteTransaction(${txId},"]`);
+            btn?.closest('tr')?.remove();
         } else {
-            alert('Error: ' + (data.message || 'Could not delete.'));
+            alert('Error: ' + (data.message || 'Could not delete transaction.'));
         }
-    } catch(e) { alert('A network error occurred.'); }
+    } catch(e) {
+        alert('A network error occurred. Please try again.');
+    }
 }
 </script>
 @endpush

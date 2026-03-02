@@ -8,23 +8,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Create System Administrator
-        User::create([
-            'name' => 'System Administrator',
-            'email' => 'admin@system.com',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'department_id' => 1, // IT Department
-        ]);
-
-
-
-       
-
+        // Admin doesn't belong to a department — null avoids FK constraint failure
+        User::firstOrCreate(
+            ['email' => 'admin@guess.com'],
+            [
+                'name'          => 'System Administrator',
+                'password'      => Hash::make('Admin1234'),
+                'role'          => 'admin',
+                'department_id' => 1,
+            ]
+        );
     }
 }

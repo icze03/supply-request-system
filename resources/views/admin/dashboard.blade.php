@@ -183,7 +183,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <a href="{{ route('admin.releases.show', $request->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Review</a>
-                                <button onclick="quickRelease({{ $request->id }})" class="text-green-600 hover:text-green-900">Release</button>
+                                
                             </td>
                         </tr>
                     @empty

@@ -12,16 +12,12 @@ use App\Models\AuditLog;
 
 class DepartmentController extends Controller
 {
-    /**
-     * Display department management page
-     */
     public function index()
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized access. Admin privileges required.');
         }
 
-        // Check if page is unlocked (session valid for 30 minutes)
         $unlockedAt = session('dept_page_unlocked_at');
         $isUnlocked = session('dept_page_unlocked')
             && $unlockedAt
@@ -40,9 +36,6 @@ class DepartmentController extends Controller
         return view('admin.departments.index', compact('departments'))->with('locked', false);
     }
 
-    /**
-     * Verify department page PIN
-     */
     public function verifyPin(Request $request)
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
@@ -67,9 +60,6 @@ class DepartmentController extends Controller
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Store new department
-     */
     public function store(Request $request)
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
@@ -80,7 +70,6 @@ class DepartmentController extends Controller
             'name'        => 'required|string|max:255|unique:departments',
             'code'        => 'required|string|max:10|unique:departments',
             'cost_center' => 'required|string|max:50',
-            'passcode'    => 'required|string|min:4|max:6|regex:/^[0-9]+$/',
         ]);
 
         if ($validator->fails()) {
@@ -92,7 +81,6 @@ class DepartmentController extends Controller
                 'name'             => $request->name,
                 'code'             => strtoupper($request->code),
                 'cost_center'      => $request->cost_center,
-                'passcode'         => $request->passcode,
                 'annual_budget'    => 0,
                 'allocated_budget' => 0,
                 'spent_budget'     => 0,
@@ -111,9 +99,6 @@ class DepartmentController extends Controller
         }
     }
 
-    /**
-     * Update department
-     */
     public function update(Request $request, $id)
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
@@ -126,7 +111,6 @@ class DepartmentController extends Controller
             'name'        => 'required|string|max:255|unique:departments,name,' . $id,
             'code'        => 'required|string|max:10|unique:departments,code,' . $id,
             'cost_center' => 'required|string|max:50',
-            'passcode'    => 'nullable|string|min:4|max:6|regex:/^[0-9]+$/',
         ]);
 
         if ($validator->fails()) {
@@ -134,17 +118,11 @@ class DepartmentController extends Controller
         }
 
         try {
-            $updateData = [
+            $department->update([
                 'name'        => $request->name,
                 'code'        => strtoupper($request->code),
                 'cost_center' => $request->cost_center,
-            ];
-
-            if ($request->filled('passcode')) {
-                $updateData['passcode'] = $request->passcode;
-            }
-
-            $department->update($updateData);
+            ]);
 
             return response()->json([
                 'success'    => true,
@@ -157,9 +135,6 @@ class DepartmentController extends Controller
         }
     }
 
-    /**
-     * Delete department
-     */
     public function destroy($id)
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
@@ -196,9 +171,6 @@ class DepartmentController extends Controller
         }
     }
 
-    /**
-     * Reset all department budgets (kept for compatibility)
-     */
     public function resetBudgets(Request $request)
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {

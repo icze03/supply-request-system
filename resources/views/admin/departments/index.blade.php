@@ -13,21 +13,16 @@
         </div>
         <h2 class="text-xl font-bold text-gray-900 mb-1">Department Management</h2>
         <p class="text-sm text-gray-500 mb-6">Enter your PIN to access this page</p>
-
         <div class="mb-4">
             <input type="password" id="pinInput" placeholder="Enter PIN"
                 class="w-full text-center text-lg tracking-widest rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3"
                 maxlength="20" autofocus>
             <p id="pinError" class="mt-2 text-xs text-red-600 hidden">Incorrect PIN. Please try again.</p>
         </div>
-
         <button onclick="submitPin()"
             class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
             Unlock
         </button>
-    </div>
-</div>
-
         <a href="{{ route('admin.dashboard') }}" class="block mt-4 text-sm text-gray-400 hover:text-gray-600">
             ← Back to Dashboard
         </a>
@@ -40,21 +35,14 @@ async function submitPin() {
     const pin     = document.getElementById('pinInput').value.trim();
     const errorEl = document.getElementById('pinError');
     errorEl.classList.add('hidden');
-
     if (!pin) return;
-
     try {
         const response = await fetch('/admin/departments/verify-pin', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({ pin })
         });
-
         const data = await response.json();
-
         if (data.success) {
             location.reload();
         } else {
@@ -68,10 +56,7 @@ async function submitPin() {
         errorEl.classList.remove('hidden');
     }
 }
-
-document.getElementById('pinInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitPin();
-});
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPin(); });
 </script>
 @endpush
 
@@ -79,7 +64,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
 
 {{-- ── Main Page Content ── --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Page Header -->
     <div class="mb-6 flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Department Management</h1>
@@ -93,7 +77,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
         </button>
     </div>
 
-    <!-- Success Message -->
     <div id="successMessage" class="hidden mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
         <div class="flex items-center">
             <svg class="h-5 w-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +101,6 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
                 </div>
             </div>
         </div>
-
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
@@ -160,9 +142,7 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
                             </div>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-800">
-                                {{ $department->code }}
-                            </span>
+                            <span class="px-2 py-1 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-800">{{ $department->code }}</span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900 font-mono">{{ $department->cost_center }}</div>
@@ -185,34 +165,30 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
     </div>
 </div>
 
-<!-- Create Department Modal -->
+<!-- Create Modal -->
 <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-lg max-w-lg w-full p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Department</h3>
         <form id="createForm" class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Department Name <span class="text-red-600">*</span></label>
-                    <input type="text" name="name" required placeholder="e.g., Information Technology" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="text" name="name" required placeholder="e.g., Information Technology"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <p class="text-xs text-red-600 mt-1 hidden" id="create-error-name"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Department Code <span class="text-red-600">*</span></label>
-                    <input type="text" name="code" required placeholder="e.g., IT" maxlength="10" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 uppercase">
+                    <input type="text" name="code" required placeholder="e.g., IT" maxlength="10"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 uppercase">
                     <p class="text-xs text-red-600 mt-1 hidden" id="create-error-code"></p>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Cost Center <span class="text-red-600">*</span></label>
-                    <input type="text" name="cost_center" required placeholder="e.g., CC-IT-001" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <p class="text-xs text-red-600 mt-1 hidden" id="create-error-cost_center"></p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Passcode <span class="text-red-600">*</span></label>
-                    <input type="text" name="passcode" required placeholder="4-6 digits" maxlength="6" pattern="[0-9]{4,6}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <p class="text-xs text-red-600 mt-1 hidden" id="create-error-passcode"></p>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Center <span class="text-red-600">*</span></label>
+                <input type="text" name="cost_center" required placeholder="e.g., CC-IT-001"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <p class="text-xs text-red-600 mt-1 hidden" id="create-error-cost_center"></p>
             </div>
             <div class="flex justify-end space-x-3 pt-2">
                 <button type="button" onclick="closeCreateModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
@@ -222,35 +198,31 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
     </div>
 </div>
 
-<!-- Edit Department Modal -->
+<!-- Edit Modal -->
 <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-lg max-w-lg w-full p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Department</h3>
         <form id="editForm" class="space-y-4">
             <input type="hidden" id="edit-dept-id">
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Department Name <span class="text-red-600">*</span></label>
-                    <input type="text" id="edit-name" name="name" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <input type="text" id="edit-name" name="name" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <p class="text-xs text-red-600 mt-1 hidden" id="edit-error-name"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Department Code <span class="text-red-600">*</span></label>
-                    <input type="text" id="edit-code" name="code" required maxlength="10" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 uppercase">
+                    <input type="text" id="edit-code" name="code" required maxlength="10"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 uppercase">
                     <p class="text-xs text-red-600 mt-1 hidden" id="edit-error-code"></p>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Cost Center <span class="text-red-600">*</span></label>
-                    <input type="text" id="edit-cost-center" name="cost_center" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <p class="text-xs text-red-600 mt-1 hidden" id="edit-error-cost_center"></p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Passcode</label>
-                    <input type="text" id="edit-passcode" name="passcode" placeholder="Leave blank to keep" maxlength="6" pattern="[0-9]{4,6}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <p class="text-xs text-red-600 mt-1 hidden" id="edit-error-passcode"></p>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Center <span class="text-red-600">*</span></label>
+                <input type="text" id="edit-cost-center" name="cost_center" required
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <p class="text-xs text-red-600 mt-1 hidden" id="edit-error-cost_center"></p>
             </div>
             <div class="flex justify-end space-x-3 pt-2">
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
@@ -283,10 +255,15 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
     e.preventDefault(); clearErrors('create');
     const data = Object.fromEntries(new FormData(e.target));
     try {
-        const response = await fetch('/admin/departments', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(data) });
+        const response = await fetch('/admin/departments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: JSON.stringify(data)
+        });
         const result = await response.json();
         if (result.success) { showSuccess(result.message); closeCreateModal(); setTimeout(() => location.reload(), 1000); }
-        else { displayErrors(result.errors, 'create'); }
+        else if (result.errors) { displayErrors(result.errors, 'create'); }
+        else { alert(result.message || 'Failed to create department.'); }
     } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
@@ -294,22 +271,32 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
     e.preventDefault(); clearErrors('edit');
     const deptId = document.getElementById('edit-dept-id').value;
     const data   = Object.fromEntries(new FormData(e.target));
-    if (!data.passcode || data.passcode.trim() === '') delete data.passcode;
     try {
-        const response = await fetch(`/admin/departments/${deptId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(data) });
+        const response = await fetch(`/admin/departments/${deptId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: JSON.stringify(data)
+        });
         const result = await response.json();
-        if (response.ok && result.success) { showSuccess(result.message); closeEditModal(); setTimeout(() => location.reload(), 1000); }
-        else { if (result.errors) displayErrors(result.errors, 'edit'); else alert(result.message || 'Failed to update department'); }
+        if (result.success) { showSuccess(result.message); closeEditModal(); setTimeout(() => location.reload(), 1000); }
+        else if (result.errors) { displayErrors(result.errors, 'edit'); }
+        else { alert(result.message || 'Failed to update department.'); }
     } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
 async function deleteDepartment(deptId) {
     const dept = departments.find(d => d.id === deptId);
     if (!dept) return;
-    if (dept.users && dept.users.length > 0) { alert(`Cannot delete "${dept.name}" — it has ${dept.users.length} user(s). Please reassign users first.`); return; }
+    if (dept.users && dept.users.length > 0) {
+        alert(`Cannot delete "${dept.name}" — it has ${dept.users.length} user(s). Please reassign users first.`);
+        return;
+    }
     if (!confirm(`Delete "${dept.name}"?\n\nThis action cannot be undone.`)) return;
     try {
-        const response = await fetch(`/admin/departments/${deptId}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
+        const response = await fetch(`/admin/departments/${deptId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        });
         const result = await response.json();
         if (result.success) { showSuccess(result.message); document.getElementById(`dept-row-${deptId}`).remove(); }
         else { alert(result.message); }
@@ -322,14 +309,18 @@ function displayErrors(errors, prefix) {
         if (el) { el.textContent = Array.isArray(messages) ? messages[0] : messages; el.classList.remove('hidden'); }
     }
 }
-function clearErrors(prefix) { document.querySelectorAll(`[id^="${prefix}-error-"]`).forEach(el => { el.textContent = ''; el.classList.add('hidden'); }); }
+function clearErrors(prefix) {
+    document.querySelectorAll(`[id^="${prefix}-error-"]`).forEach(el => { el.textContent = ''; el.classList.add('hidden'); });
+}
 function showSuccess(message) {
     const div = document.getElementById('successMessage');
     document.getElementById('successText').textContent = message;
     div.classList.remove('hidden');
     setTimeout(() => div.classList.add('hidden'), 5000);
 }
-document.querySelectorAll('input[name="code"]').forEach(input => { input.addEventListener('input', e => e.target.value = e.target.value.toUpperCase()); });
+document.querySelectorAll('input[name="code"]').forEach(input => {
+    input.addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
+});
 </script>
 @endpush
 

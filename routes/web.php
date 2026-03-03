@@ -16,7 +16,7 @@ Route::get('/', function () {
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
-    
+
     // Profile routes (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function () {
     // EMPLOYEE ROUTES
     // =============================================
     Route::middleware('employee')->prefix('employee')->name('employee.')->group(function () {
-        
+
         // Catalog
         Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
         Route::get('/catalog/supplies', [CatalogController::class, 'getSupplies'])->name('catalog.supplies');
@@ -41,10 +41,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/requests', [RequestController::class, 'store'])->name('requests.store');
         Route::post('/requests/special', [RequestController::class, 'storeSpecial'])->name('requests.special');
         Route::delete('/requests/{id}', [RequestController::class, 'cancel'])->name('requests.cancel');
-
-        Route::delete('/requests/{id}', [RequestController::class, 'cancel'])->name('requests.cancel');
-        Route::post('/requests/{id}/return', [RequestController::class, 'submitReturn'])->name('requests.return'); 
-
+        Route::post('/requests/{id}/return', [RequestController::class, 'submitReturn'])->name('requests.return');
         Route::get('/requests/{id}/voucher', [RequestController::class, 'voucher'])->name('requests.voucher');
     });
 
@@ -52,134 +49,115 @@ Route::middleware('auth')->group(function () {
     // MANAGER ROUTES
     // =============================================
     Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
-        
 
-        // Approvals - FIXED: Changed 'approvals' to 'approvals.index'
         Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
         Route::get('/approvals/{id}', [ApprovalController::class, 'show'])->name('approvals.show');
         Route::post('/approvals/{id}/approve', [ApprovalController::class, 'approve'])->name('approvals.approve');
         Route::post('/approvals/{id}/reject', [ApprovalController::class, 'reject'])->name('approvals.reject');
         Route::post('/approvals/{id}/update-quantity', [ApprovalController::class, 'updateQuantity'])->name('approvals.update-quantity');
-        
-        // Request detail view
+
         Route::get('/requests/{id}', [ApprovalController::class, 'show'])->name('requests.show');
         Route::post('/requests/{id}/update-item', [ApprovalController::class, 'updateItem'])->name('requests.update-item');
-
     });
 
     // =============================================
     // ADMIN ROUTES
     // =============================================
-
     Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    
-    // Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])
-        ->name('dashboard');
 
-    // Department Management Routes - ADD THESE
-    Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
-        ->name('departments.index');
-    Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
-        ->name('departments.store');
-    Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
-        ->name('departments.update');
-    Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
-        ->name('departments.destroy');
-    Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
-        ->name('departments.budget.reset');
+        // Dashboard
+        Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])
+            ->name('dashboard');
 
-    // User Management
-    Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])
-        ->name('users.index');
-    Route::post('/users/verify-pin', [App\Http\Controllers\Admin\UserManagementController::class, 'verifyPin'])
-        ->name('users.verify-pin');    
-    Route::post('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'store'])
-        ->name('users.store');
-    Route::put('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'update'])
-        ->name('users.update');
-    Route::put('/users/{id}/password', [App\Http\Controllers\Admin\UserManagementController::class, 'changePassword'])
-        ->name('users.password');
-    Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])
-        ->name('users.destroy');
+        // PIN verify routes FIRST (before {id} wildcards)
+        Route::post('/departments/verify-pin', [App\Http\Controllers\Admin\DepartmentController::class, 'verifyPin'])
+            ->name('departments.verify-pin');
+        Route::post('/users/verify-pin', [App\Http\Controllers\Admin\UserManagementController::class, 'verifyPin'])
+            ->name('users.verify-pin');
 
-    // Supply Management - ALL ROUTES DEFINED
-    Route::get('/supplies', [App\Http\Controllers\AdminController::class, 'suppliesIndex'])
-        ->name('supplies.index');
-    Route::get('/supplies/create', [App\Http\Controllers\AdminController::class, 'suppliesCreate'])
-        ->name('supplies.create');
-    Route::post('/supplies', [App\Http\Controllers\AdminController::class, 'suppliesStore'])
-        ->name('supplies.store');  // THIS WAS MISSING!
-    Route::get('/supplies/{id}/edit', [App\Http\Controllers\AdminController::class, 'suppliesEdit'])
-        ->name('supplies.edit');
-    Route::put('/supplies/{id}', [App\Http\Controllers\AdminController::class, 'suppliesUpdate'])
-        ->name('supplies.update');
-    Route::post('/supplies/{id}/toggle', [App\Http\Controllers\AdminController::class, 'suppliesToggle'])
-        ->name('supplies.toggle');
-    Route::delete('/supplies/{id}', [App\Http\Controllers\AdminController::class, 'suppliesDestroy'])
-        ->name('supplies.destroy');
+        // User Management
+        Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])
+            ->name('users.index');
+        Route::post('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'store'])
+            ->name('users.store');
+        Route::put('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'update'])
+            ->name('users.update');
+        Route::put('/users/{id}/password', [App\Http\Controllers\Admin\UserManagementController::class, 'changePassword'])
+            ->name('users.password');
+        Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])
+            ->name('users.destroy');
 
-    // Low Stock (Separate Page)
-    Route::get('/low-stock', [App\Http\Controllers\AdminController::class, 'lowStockIndex'])
-        ->name('low-stock.index');
+        // Supply Management → SupplyController (has audit logging)
+        Route::get('/supplies', [SupplyController::class, 'index'])
+            ->name('supplies.index');
+        Route::get('/supplies/create', [SupplyController::class, 'create'])
+            ->name('supplies.create');
+        Route::post('/supplies', [SupplyController::class, 'store'])
+            ->name('supplies.store');
+        Route::get('/supplies/{id}/edit', [SupplyController::class, 'edit'])
+            ->name('supplies.edit');
+        Route::put('/supplies/{id}', [SupplyController::class, 'update'])
+            ->name('supplies.update');
+        Route::post('/supplies/{id}/toggle', [SupplyController::class, 'toggleStatus'])
+            ->name('supplies.toggle');
+        Route::delete('/supplies/{id}', [SupplyController::class, 'destroy'])
+            ->name('supplies.destroy');
 
-    // Release Management
-    Route::get('/releases', [App\Http\Controllers\Admin\ReleaseController::class, 'index'])
-        ->name('releases.index');
-    Route::get('/releases/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'show'])
-        ->name('releases.show');
-    Route::post('/releases/{id}/release', [App\Http\Controllers\Admin\ReleaseController::class, 'release'])
-        ->name('releases.release');
-    Route::post('/releases/{id}/requeue',         [ReleaseController::class, 'closeAndRequeue'])->name('admin.releases.requeue');
-    Route::post('/releases/{id}/reject', [App\Http\Controllers\Admin\ReleaseController::class, 'reject'])
-        ->name('releases.reject');
-    Route::delete('/releases/{id}/delete', [App\Http\Controllers\Admin\ReleaseController::class, 'destroy'])
-        ->name('releases.destroy');    
-    
-    Route::post('/releases/{id}/approve-return', [App\Http\Controllers\Admin\ReleaseController::class, 'approveReturn'])->name('releases.approveReturn');
-    Route::post('/releases/{id}/reject-return', [App\Http\Controllers\Admin\ReleaseController::class, 'rejectReturn'])->name('releases.rejectReturn');
+        // Low Stock
+        Route::get('/low-stock', [App\Http\Controllers\AdminController::class, 'lowStockIndex'])
+            ->name('low-stock.index');
 
-    Route::get('/releases/{id}/details', [ReleaseController::class, 'details'])->name('releases.details');
+        // Release Management
+        Route::get('/releases', [ReleaseController::class, 'index'])
+            ->name('releases.index');
+        Route::get('/releases/{id}', [ReleaseController::class, 'show'])
+            ->name('releases.show');
+        Route::post('/releases/{id}/release', [ReleaseController::class, 'release'])
+            ->name('releases.release');
+        Route::post('/releases/{id}/requeue', [ReleaseController::class, 'closeAndRequeue'])
+            ->name('admin.releases.requeue');
+        Route::post('/releases/{id}/reject', [ReleaseController::class, 'reject'])
+            ->name('releases.reject');
+        Route::delete('/releases/{id}/delete', [ReleaseController::class, 'destroy'])
+            ->name('releases.destroy');
+        Route::post('/releases/{id}/approve-return', [ReleaseController::class, 'approveReturn'])
+            ->name('releases.approveReturn');
+        Route::post('/releases/{id}/reject-return', [ReleaseController::class, 'rejectReturn'])
+            ->name('releases.rejectReturn');
+        Route::get('/releases/{id}/details', [ReleaseController::class, 'details'])
+            ->name('releases.details');
+        Route::delete('/releases/transactions/{id}', [ReleaseController::class, 'destroyTransaction'])
+            ->name('admin.releases.transactions.destroy');
 
-    Route::delete('/releases/transactions/{id}', [ReleaseController::class, 'destroyTransaction'])
-    ->name('admin.releases.transactions.destroy');
+        // Voucher
+        Route::get('/voucher/{id}', [ReleaseController::class, 'voucher'])
+            ->name('voucher');
 
-    
-    // Voucher
-    Route::get('/voucher/{id}', [App\Http\Controllers\Admin\ReleaseController::class, 'voucher']) 
-    ->name('voucher');
+        // Department Management
+        Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
+            ->name('departments.index');
+        Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
+            ->name('departments.store');
+        Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
+            ->name('departments.update');
+        Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
+            ->name('departments.destroy');
+        Route::put('/departments/{id}/budget', [App\Http\Controllers\Admin\DepartmentController::class, 'updateBudget'])
+            ->name('departments.budget.update');
+        Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
+            ->name('departments.budget.reset');
 
-    // Department Management with Budget Routes
-    Route::get('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'index'])
-        ->name('departments.index');
-    Route::post('/departments', [App\Http\Controllers\Admin\DepartmentController::class, 'store'])
-        ->name('departments.store');
-    Route::put('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'update'])
-        ->name('departments.update');
-    Route::delete('/departments/{id}', [App\Http\Controllers\Admin\DepartmentController::class, 'destroy'])
-        ->name('departments.destroy');
-    
-    // Budget Management Routes - ADD THESE
-    Route::put('/departments/{id}/budget', [App\Http\Controllers\Admin\DepartmentController::class, 'updateBudget'])
-        ->name('departments.budget.update');
-    Route::post('/departments/reset-budgets', [App\Http\Controllers\Admin\DepartmentController::class, 'resetBudgets'])
-        ->name('departments.budget.reset');
+        // Audit Logs
+        Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])
+            ->name('audit-logs.index');
+        Route::get('/audit-logs/{id}', [App\Http\Controllers\Admin\AuditLogController::class, 'show'])
+            ->name('audit-logs.show');
+        Route::get('/audit-logs/export/csv', [App\Http\Controllers\Admin\AuditLogController::class, 'export'])
+            ->name('audit-logs.export');
 
-    // Audit Logs
-    Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])
-        ->name('audit-logs.index');
-    Route::get('/audit-logs/{id}', [App\Http\Controllers\Admin\AuditLogController::class, 'show'])
-        ->name('audit-logs.show');
-    Route::get('/audit-logs/export/csv', [App\Http\Controllers\Admin\AuditLogController::class, 'export'])
-        ->name('audit-logs.export');
-
-    // dashboard    
-    Route::get('/dashboard/department/{id}/requests', [DashboardController::class, 'departmentRequests'])
-     ->name('admin.dashboard.department.requests');
-
-
-    Route::post('/departments/verify-pin', [App\Http\Controllers\Admin\DepartmentController::class, 'verifyPin'])
-    ->name('departments.verify-pin'); 
+        // Dashboard department requests
+        Route::get('/dashboard/department/{id}/requests', [DashboardController::class, 'departmentRequests'])
+            ->name('admin.dashboard.department.requests');
     });
 });
 

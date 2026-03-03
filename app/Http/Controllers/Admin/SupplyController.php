@@ -32,7 +32,7 @@ class SupplyController extends Controller
         }
 
         $supplies    = $query->paginate(20)->withQueryString();
-        $categories  = Supply::getCategories();
+        $categories  = Supply::select('category')->distinct()->orderBy('category')->pluck('category');
 
         return view('admin.supplies.index', compact('supplies', 'categories'));
     }
@@ -40,7 +40,7 @@ class SupplyController extends Controller
     // Create form
     public function create()
     {
-        $categories = Supply::getCategories();
+        $categories = Supply::select('category')->distinct()->orderBy('category')->pluck('category');
         return view('admin.supplies.create', compact('categories'));
     }
 
@@ -70,7 +70,7 @@ class SupplyController extends Controller
                 'ip_address'    => request()->ip(),
                 'user_agent'    => request()->userAgent(),
                 'new_values'    => json_encode($supply->getAttributes()),
-                'description'   => "New supply item added: {$supply->item_name}",
+                'description'   => "New supply item added: {$supply->name}",
                 'metadata'      => json_encode([
                     'category'     => $supply->category,
                     'unit'         => $supply->unit,
@@ -94,7 +94,7 @@ class SupplyController extends Controller
     public function edit($id)
     {
         $supply     = Supply::findOrFail($id);
-        $categories = Supply::getCategories();
+        $categories = Supply::select('category')->distinct()->orderBy('category')->pluck('category');
 
         return view('admin.supplies.edit', compact('supply', 'categories'));
     }
@@ -188,7 +188,7 @@ class SupplyController extends Controller
                 'user_agent'    => request()->userAgent(),
                 'old_values'    => json_encode(['is_active' => $oldStatus]),
                 'new_values'    => json_encode(['is_active' => $newStatus]),
-                'description'   => 'Supply item ' . ($newStatus ? 'activated' : 'deactivated') . ": {$supply->item_name}",
+                'description'   => 'Supply item ' . ($newStatus ? 'activated' : 'deactivated') . ": {$supply->name}",
                 'metadata'      => json_encode([
                     'item_code' => $supply->item_code,
                     'category'  => $supply->category,
@@ -224,7 +224,7 @@ class SupplyController extends Controller
                     'department_id' => auth()->user()?->department_id,
                     'ip_address'    => request()->ip(),
                     'user_agent'    => request()->userAgent(),
-                    'description'   => "Failed to delete supply item: {$supply->item_name} (in use)",
+                    'description'   => "Failed to delete supply item: {$supply->name} (in use)",
                     'metadata'      => json_encode([
                         'reason'        => 'Supply has been used in requests',
                         'request_count' => $supply->requestItems()->count(),
@@ -246,7 +246,7 @@ class SupplyController extends Controller
         }
 
         $supplyData = [
-            'item_name'      => $supply->item_name,
+            'name'           => $supply->name,
             'item_code'      => $supply->item_code,
             'category'       => $supply->category,
             'unit'           => $supply->unit,
@@ -264,7 +264,7 @@ class SupplyController extends Controller
                 'ip_address'    => request()->ip(),
                 'user_agent'    => request()->userAgent(),
                 'old_values'    => json_encode($supply->getAttributes()),
-                'description'   => "Supply item deleted: {$supply->item_name}",
+                'description'   => "Supply item deleted: {$supply->name}",
                 'metadata'      => json_encode(array_merge($supplyData, [
                     'deleted_by'      => auth()->user()?->name ?? 'System',
                     'deletion_reason' => 'Manual deletion by admin',

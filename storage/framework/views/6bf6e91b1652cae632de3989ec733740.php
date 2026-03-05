@@ -115,14 +115,45 @@
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-sm">
-                Developed by <span class="font-semibold">Klein Isaac Imperio</span> © <?php echo e(date('2026')); ?>
+ <!-- Ultra Compact Footer -->
+<footer class="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 text-white py-3 mt-auto border-t border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Main Footer Content -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+            <!-- Developer Info -->
+            <div class="text-center md:text-left">
+                <h3 class="text-sm font-bold mb-0.5 text-blue-400">Supply Request Management System</h3>
+                <p class="text-xs text-gray-400">
+                    supply tracking and approval workflow
+                </p>
+            </div>
 
-            </p>
+            <!-- Tech Stack -->
+            <div class="text-center">
+                <h4 class="text-xs font-semibold mb-1 text-gray-300">Built With</h4>
+                <div class="flex flex-wrap justify-center gap-1">
+                    <span class="px-1.5 py-0.5 bg-red-600 bg-opacity-20 border border-red-500 rounded text-xs font-mono">Laravel 12</span>
+                    <span class="px-1.5 py-0.5 bg-blue-600 bg-opacity-20 border border-blue-500 rounded text-xs font-mono">PHP 8.3</span>
+                    <span class="px-1.5 py-0.5 bg-cyan-600 bg-opacity-20 border border-cyan-500 rounded text-xs font-mono">Tailwind CSS</span>
+                    <span class="px-1.5 py-0.5 bg-orange-600 bg-opacity-20 border border-orange-500 rounded text-xs font-mono">MySQL</span>
+                </div>
+            </div>
+
+            <!-- Developer Credit -->
+            <div class="text-center md:text-right">
+                <h4 class="text-xs font-semibold mb-1 text-gray-300">Developed By</h4>
+                <p class="text-sm font-bold text-blue-400">Klein Imperio</p>
+            </div>
         </div>
-    </footer>
+
+        <!-- Divider -->
+        <div class="border-t border-gray-700 pt-2">
+            <div class="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                <p>© <?php echo e(date('Y')); ?> Supply Requisition System.</p>
+                <p class="mt-0.5 md:mt-0">Version 1.0.0 | Last Updated: <?php echo e(date('F Y')); ?></p>
+            </div>
+        </div>
+    </div>
+</footer>
 </body>
 </html><?php /**PATH C:\laragon\www\supply-request-system\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -18,24 +18,8 @@ class UserManagementController extends Controller
      */
     public function index()
     {
-        // ── PIN Lock Check ────────────────────────────────────────────
-        $unlockedAt = session('users_page_unlocked_at');
-        $isUnlocked = session('users_page_unlocked')
-            && $unlockedAt
-            && (now()->timestamp - $unlockedAt) < 1800;
-
-        if (!$isUnlocked) {
-            session()->forget(['users_page_unlocked', 'users_page_unlocked_at']);
-            return view('admin.users.index', [
-                'users'       => collect(),
-                'departments' => collect(),
-                'locked'      => true,
-            ]);
-        }
-        // ─────────────────────────────────────────────────────────────
-
         $users = User::with('department')
-            ->whereIn('role', ['employee', 'manager'])
+            ->whereIn('role', ['employee', 'manager', 'hr_manager'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -48,7 +32,7 @@ class UserManagementController extends Controller
     }
 
     /**
-     * Verify users page PIN
+     * Verify users page PIN (kept for backwards compatibility)
      */
     public function verifyPin(Request $request)
     {
@@ -82,7 +66,7 @@ class UserManagementController extends Controller
             'name'          => 'required|string|max:255',
             'email'         => 'required|email|unique:users,email',
             'password'      => 'required|string|min:8|confirmed',
-            'role'          => 'required|in:employee,manager',
+            'role'          => 'required|in:employee,manager,hr_manager',
             'department_id' => 'required|exists:departments,id',
         ]);
 
@@ -122,7 +106,7 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot modify admin accounts',
@@ -132,7 +116,7 @@ class UserManagementController extends Controller
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|max:255',
             'email'         => 'required|email|unique:users,email,' . $id,
-            'role'          => 'required|in:employee,manager',
+            'role'          => 'required|in:employee,manager,hr_manager',
             'department_id' => 'required|exists:departments,id',
         ]);
 
@@ -164,7 +148,7 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot modify admin accounts',
@@ -197,7 +181,7 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete admin accounts',

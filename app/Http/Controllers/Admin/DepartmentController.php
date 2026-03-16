@@ -13,28 +13,12 @@ use App\Models\AuditLog;
 class DepartmentController extends Controller
 {
     public function index()
-    {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized access. Admin privileges required.');
-        }
+{
+    $departments = Department::orderBy('name')->get();
 
-        $unlockedAt = session('dept_page_unlocked_at');
-        $isUnlocked = session('dept_page_unlocked')
-            && $unlockedAt
-            && (now()->timestamp - $unlockedAt) < 1800;
-
-        if (!$isUnlocked) {
-            session()->forget(['dept_page_unlocked', 'dept_page_unlocked_at']);
-            return view('admin.departments.index', [
-                'departments' => collect(),
-                'locked'      => true,
-            ]);
-        }
-
-        $departments = Department::with('users')->orderBy('name')->get();
-
-        return view('admin.departments.index', compact('departments'))->with('locked', false);
-    }
+    return view('admin.departments.index', compact('departments'))
+        ->with('locked', false);
+}
 
     public function verifyPin(Request $request)
     {

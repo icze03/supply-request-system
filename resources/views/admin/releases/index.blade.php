@@ -321,8 +321,8 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Serial / Round</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">SR Number</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Release ID / Round</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Request ID</th>
                             <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>
                             <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Department</th>
                             <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Qty Released</th>

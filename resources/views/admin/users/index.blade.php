@@ -1,69 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
-{{-- ── PIN Lock Screen ── --}}
-@if(isset($locked) && $locked)
-<div id="pinLockScreen" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
-        <div class="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4">
-            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-        </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-1">User Management</h2>
-        <p class="text-sm text-gray-500 mb-6">Enter your PIN to access this page</p>
-
-        <div class="mb-4">
-            <input type="password" id="pinInput" placeholder="Enter PIN"
-                class="w-full text-center text-lg tracking-widest rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3"
-                maxlength="20" autofocus>
-            <p id="pinError" class="mt-2 text-xs text-red-600 hidden">Incorrect PIN. Please try again.</p>
-        </div>
-
-        <button onclick="submitPin()"
-            class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-            Unlock
-        </button>
-
-        
-    </div>
-</div>
-
-@push('scripts')
-<script>
-async function submitPin() {
-    const pin     = document.getElementById('pinInput').value.trim();
-    const errorEl = document.getElementById('pinError');
-    errorEl.classList.add('hidden');
-    if (!pin) return;
-    try {
-        const response = await fetch('/admin/users/verify-pin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ pin })
-        });
-        const data = await response.json();
-        if (data.success) {
-            location.reload();
-        } else {
-            errorEl.textContent = data.message || 'Incorrect PIN. Please try again.';
-            errorEl.classList.remove('hidden');
-            document.getElementById('pinInput').value = '';
-            document.getElementById('pinInput').focus();
-        }
-    } catch (e) {
-        errorEl.textContent = 'An error occurred. Please try again.';
-        errorEl.classList.remove('hidden');
-    }
-}
-document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPin(); });
-</script>
-@endpush
-
-@else
-
-{{-- ── Main Page Content ── --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-6 flex justify-between items-center">
         <div>
@@ -110,7 +47,7 @@ document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $user->getRoleBadgeColor() }}">
-                                {{ ucfirst($user->role) }}
+                                {{ $user->getRoleLabel() }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -153,6 +90,7 @@ document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key
                     <option value="">Select Role</option>
                     <option value="employee">Employee</option>
                     <option value="manager">Manager</option>
+                    <option value="hr_manager">HR Manager</option>
                 </select>
                 <p class="text-xs text-red-600 mt-1 hidden" id="create-error-role"></p>
             </div>
@@ -204,6 +142,7 @@ document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key
                 <select id="edit-role" name="role" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option value="employee">Employee</option>
                     <option value="manager">Manager</option>
+                    <option value="hr_manager">HR Manager</option>
                 </select>
             </div>
             <div>
@@ -330,6 +269,4 @@ function showSuccess(message) {
 }
 </script>
 @endpush
-
-@endif
 @endsection

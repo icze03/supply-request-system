@@ -15,12 +15,14 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         if ($user->isAdmin()) {
-            return $this->adminDashboard();
-        } elseif ($user->isManager()) {
-            return $this->managerDashboard();
-        } else {
-            return $this->employeeDashboard();
-        }
+    return $this->adminDashboard();
+    } elseif ($user->isManager()) {
+    return $this->managerDashboard();
+    } elseif ($user->isHrManager()) {
+    return $this->hrManagerDashboard();
+    } else {
+    return $this->employeeDashboard();
+    }
     }
 
     // EMPLOYEE DASHBOARD
@@ -70,6 +72,21 @@ class DashboardController extends Controller
         ];
 
         return view('manager.dashboard', $data);
+        }
+    // HR MANAGER DASHBOARD
+    private function hrManagerDashboard()
+    {
+    $data = [
+        'totalUsers'       => \App\Models\User::whereIn('role', ['employee', 'manager'])->count(),
+        'totalDepartments' => \App\Models\Department::count(),
+        'recentUsers'      => \App\Models\User::with('department')
+                                ->whereIn('role', ['employee', 'manager'])
+                                ->latest()
+                                ->take(5)
+                                ->get(),
+    ];
+
+    return view('hr_manager.dashboard', $data);
     }
 
     // ADMIN DASHBOARD
@@ -107,6 +124,8 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->get(),
         ];
+
+        
 
         return view('admin.dashboard', $data);
     }

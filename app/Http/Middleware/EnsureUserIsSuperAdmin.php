@@ -6,14 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureUserIsAdmin
+class EnsureUserIsSuperAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = auth()->user();
-
-        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin() && !$user->isHrManager())) {
-            abort(403, 'Unauthorized access. Admin privileges required.');
+        if (!auth()->check() || !auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Super Admin privileges required.');
         }
 
         return $next($request);

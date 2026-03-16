@@ -49,7 +49,7 @@ class LowStockController extends Controller
         
         $supply->update(['stock_quantity' => $newStock]);
         
-        // ✅ LOG STOCK RESTOCK
+        // LOG STOCK RESTOCK
         try {
             AuditLog::create([
                 'action' => 'inventory_restocked',
@@ -111,7 +111,7 @@ class LowStockController extends Controller
         
         $supply->update(['stock_quantity' => $newStock]);
         
-        // ✅ LOG STOCK ADJUSTMENT
+        // LOG STOCK ADJUSTMENT
         try {
             AuditLog::create([
                 'action' => 'inventory_adjusted_manual',
@@ -171,7 +171,7 @@ class LowStockController extends Controller
         
         $supply->update(['minimum_stock' => $newMinimum]);
         
-        // ✅ LOG MINIMUM STOCK UPDATE
+        // LOG MINIMUM STOCK UPDATE
         try {
             AuditLog::create([
                 'action' => 'minimum_stock_updated',

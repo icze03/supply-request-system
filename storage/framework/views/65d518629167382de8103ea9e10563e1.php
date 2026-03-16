@@ -1,68 +1,6 @@
 
 
 <?php $__env->startSection('content'); ?>
-
-
-<?php if(isset($locked) && $locked): ?>
-<div id="pinLockScreen" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
-        <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mx-auto mb-4">
-            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-        </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-1">Department Management</h2>
-        <p class="text-sm text-gray-500 mb-6">Enter your PIN to access this page</p>
-        <div class="mb-4">
-            <input type="password" id="pinInput" placeholder="Enter PIN"
-                class="w-full text-center text-lg tracking-widest rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3"
-                maxlength="20" autofocus>
-            <p id="pinError" class="mt-2 text-xs text-red-600 hidden">Incorrect PIN. Please try again.</p>
-        </div>
-        <button onclick="submitPin()"
-            class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
-            Unlock
-        </button>
-        <a href="<?php echo e(route('admin.dashboard')); ?>" class="block mt-4 text-sm text-gray-400 hover:text-gray-600">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
-
-<?php $__env->startPush('scripts'); ?>
-<script>
-async function submitPin() {
-    const pin     = document.getElementById('pinInput').value.trim();
-    const errorEl = document.getElementById('pinError');
-    errorEl.classList.add('hidden');
-    if (!pin) return;
-    try {
-        const response = await fetch('/admin/departments/verify-pin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ pin })
-        });
-        const data = await response.json();
-        if (data.success) {
-            location.reload();
-        } else {
-            errorEl.textContent = data.message || 'Incorrect PIN. Please try again.';
-            errorEl.classList.remove('hidden');
-            document.getElementById('pinInput').value = '';
-            document.getElementById('pinInput').focus();
-        }
-    } catch (e) {
-        errorEl.textContent = 'An error occurred. Please try again.';
-        errorEl.classList.remove('hidden');
-    }
-}
-document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPin(); });
-</script>
-<?php $__env->stopPush(); ?>
-
-<?php else: ?>
-
-
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-6 flex justify-between items-center">
         <div>
@@ -246,7 +184,6 @@ function openEditModal(deptId) {
     document.getElementById('edit-name').value        = dept.name || '';
     document.getElementById('edit-code').value        = dept.code || '';
     document.getElementById('edit-cost-center').value = dept.cost_center || '';
-    document.getElementById('edit-passcode').value    = '';
     document.getElementById('editModal').classList.remove('hidden');
 }
 function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); clearErrors('edit'); }
@@ -262,8 +199,7 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
         });
         const result = await response.json();
         if (result.success) { showSuccess(result.message); closeCreateModal(); setTimeout(() => location.reload(), 1000); }
-        else if (result.errors) { displayErrors(result.errors, 'create'); }
-        else { alert(result.message || 'Failed to create department.'); }
+        else { displayErrors(result.errors, 'create'); }
     } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
@@ -278,9 +214,8 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
             body: JSON.stringify(data)
         });
         const result = await response.json();
-        if (result.success) { showSuccess(result.message); closeEditModal(); setTimeout(() => location.reload(), 1000); }
-        else if (result.errors) { displayErrors(result.errors, 'edit'); }
-        else { alert(result.message || 'Failed to update department.'); }
+        if (response.ok && result.success) { showSuccess(result.message); closeEditModal(); setTimeout(() => location.reload(), 1000); }
+        else { if (result.errors) displayErrors(result.errors, 'edit'); else alert(result.message || 'Failed to update department'); }
     } catch (error) { alert('An error occurred. Please try again.'); }
 });
 
@@ -323,7 +258,5 @@ document.querySelectorAll('input[name="code"]').forEach(input => {
 });
 </script>
 <?php $__env->stopPush(); ?>
-
-<?php endif; ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\supply-request-system\resources\views/admin/departments/index.blade.php ENDPATH**/ ?>

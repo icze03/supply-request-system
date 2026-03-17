@@ -11,19 +11,23 @@ use App\Models\AuditLog;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        if ($user->isAdmin()) {
-    return $this->adminDashboard();
+    if ($user->isSuperAdmin()) {
+        return redirect()->route('super_admin.dashboard');
+    }
+
+    if ($user->isAdmin()) {
+        return $this->adminDashboard();
     } elseif ($user->isManager()) {
-    return $this->managerDashboard();
+        return $this->managerDashboard();
     } elseif ($user->isHrManager()) {
-    return $this->hrManagerDashboard();
+        return $this->hrManagerDashboard();
     } else {
-    return $this->employeeDashboard();
+        return $this->employeeDashboard();
     }
-    }
+}
 
     // EMPLOYEE DASHBOARD
     private function employeeDashboard()

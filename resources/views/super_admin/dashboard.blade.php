@@ -573,19 +573,7 @@
             {{-- ── MAIN (left/centre) ────────────────────────────────────── --}}
             <div class="col-main">
 
-                {{-- Low-stock alert --}}
-                @if($lowStockCount > 0)
-                <div class="alert-low">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <p>
-                        <strong>{{ $lowStockCount }}</strong> {{ Str::plural('item', $lowStockCount) }} below minimum stock level.
-                    </p>
-                    <a href="{{ route('admin.low-stock.index') }}">View →</a>
-                </div>
-                @endif
+               
 
                 {{-- Role Breakdown --}}
                 @php
@@ -765,37 +753,7 @@
                 </div>
 
                 {{-- Recent Activity --}}
-                <div class="card">
-                    <div class="card-head">
-                        <span class="card-title">Recent Activity</span>
-                        <a href="{{ route('admin.audit-logs.index') }}" class="card-link">All logs →</a>
-                    </div>
-                    @forelse($recentLogs as $log)
-                    @php
-                    $dotColor = match(true) {
-                        str_contains($log->action, 'created')  => '#60a5fa',
-                        str_contains($log->action, 'approved') => '#34d399',
-                        str_contains($log->action, 'rejected') => '#f87171',
-                        str_contains($log->action, 'released') => '#818cf8',
-                        str_contains($log->action, 'deleted')  => '#fca5a5',
-                        str_contains($log->action, 'updated')  => '#c084fc',
-                        default => '#cbd5e1',
-                    };
-                    @endphp
-                    <div class="activity-row">
-                        <span class="activity-dot" style="background:{{ $dotColor }};"></span>
-                        <div style="flex:1; min-width:0;">
-                            <p class="activity-desc">{{ $log->description ?? $log->action_name }}</p>
-                            <p class="activity-meta">
-                                {{ $log->user?->name ?? 'System' }} &nbsp;·&nbsp; {{ $log->created_at?->diffForHumans() }}
-                            </p>
-                        </div>
-                    </div>
-                    @empty
-                    <div class="empty-state">No activity yet.</div>
-                    @endforelse
-                </div>
-
+                
                 {{-- New Users --}}
                 @php
                 $userBadge = [
@@ -831,5 +789,6 @@
         </div>
     </div>
 </div>
+
 
 @endsection

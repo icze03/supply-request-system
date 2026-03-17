@@ -573,19 +573,7 @@
             
             <div class="col-main">
 
-                
-                <?php if($lowStockCount > 0): ?>
-                <div class="alert-low">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <p>
-                        <strong><?php echo e($lowStockCount); ?></strong> <?php echo e(Str::plural('item', $lowStockCount)); ?> below minimum stock level.
-                    </p>
-                    <a href="<?php echo e(route('admin.low-stock.index')); ?>">View →</a>
-                </div>
-                <?php endif; ?>
+               
 
                 
                 <?php
@@ -766,38 +754,7 @@
                 </div>
 
                 
-                <div class="card">
-                    <div class="card-head">
-                        <span class="card-title">Recent Activity</span>
-                        <a href="<?php echo e(route('admin.audit-logs.index')); ?>" class="card-link">All logs →</a>
-                    </div>
-                    <?php $__empty_1 = true; $__currentLoopData = $recentLogs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <?php
-                    $dotColor = match(true) {
-                        str_contains($log->action, 'created')  => '#60a5fa',
-                        str_contains($log->action, 'approved') => '#34d399',
-                        str_contains($log->action, 'rejected') => '#f87171',
-                        str_contains($log->action, 'released') => '#818cf8',
-                        str_contains($log->action, 'deleted')  => '#fca5a5',
-                        str_contains($log->action, 'updated')  => '#c084fc',
-                        default => '#cbd5e1',
-                    };
-                    ?>
-                    <div class="activity-row">
-                        <span class="activity-dot" style="background:<?php echo e($dotColor); ?>;"></span>
-                        <div style="flex:1; min-width:0;">
-                            <p class="activity-desc"><?php echo e($log->description ?? $log->action_name); ?></p>
-                            <p class="activity-meta">
-                                <?php echo e($log->user?->name ?? 'System'); ?> &nbsp;·&nbsp; <?php echo e($log->created_at?->diffForHumans()); ?>
-
-                            </p>
-                        </div>
-                    </div>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <div class="empty-state">No activity yet.</div>
-                    <?php endif; ?>
-                </div>
-
+                
                 
                 <?php
                 $userBadge = [
@@ -834,6 +791,7 @@
         </div>
     </div>
 </div>
+
 
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\supply-request-system\resources\views/super_admin/dashboard.blade.php ENDPATH**/ ?>
